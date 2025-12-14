@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Raid Door Checklist</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #0f1115;
+    color: #e6e6e6;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  .card {
+    max-width: 700px;
+    margin: auto;
+    background: #1b1f2a;
+    padding: 20px;
+    border-radius: 10px;
+  }
+  button, .floor-btn {
+    padding: 8px 12px;
+    margin: 5px 2px;
+    border: none;
+    border-radius: 6px;
+    background: #4095f4;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .floor-btn.active { background: #2d6cd2; }
+
+  .map-container {
+    position: relative;
+    width: 100%;
+    margin-top: 15px;
+  }
+  .map-image { width: 100%; display: block; }
+
+  .door-icon {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+    background: rgba(255, 0, 0, 0.55);
+    padding: 0;
+    line-height: 0;
+    font-size: 0;
+  }
+  .door-icon.opened { background: rgba(0, 255, 0, 0.55); }
+
+  .door-icon:hover::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: white;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+    min-width: max-content;
+    text-align: center;
+  }
+
+  #notification {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #2d6cd2;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    opacity: 0.9;
+    z-index: 100;
+    display: none;
+  }
+
+  input[type="text"] {
+    width: calc(100% - 100px);
+    padding: 8px;
+    margin-right: 5px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+  }
+
+  /* Hide map and floor buttons initially */
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Raid Door Checklist</h2>
+
+  <div>
+    <button onclick="createRoom()">Create Raid</button>
+  </div>
+  <div style="margin-top:10px;">
+    <input type="text" id="joinCode" placeholder="Enter Room Code">
+    <button onclick="joinRoomInput()">Join Room</button>
+  </div>
+  <div id="room" style="margin-top:10px;"></div>
+
+  <!-- Floor buttons hidden initially -->
+  <div id="floor-buttons" class="hidden" style="margin-top:10px;">
+    <button class="floor-btn active" onclick="switchFloor(1)">Floor 1</button>
+    <button class="floor-btn" onclick="switchFloor(2)">Floor 2</button>
+  </div>
+
+  <!-- Map hidden initially -->
+  <div class="map-container hidden">
+    <img id="map-image" class="map-image" src="floor1.png" alt="Floor Map">
+  </div>
+</div>
+
+<div id="notification"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBjCQ0bC17KHnG9ylIszBtaAnnDPLYqBV0",
+  authDomain: "abi-checklist.firebaseapp.com",
+  databaseURL: "https://abi-checklist-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "abi-checklist",
+  storageBucket: "abi-checklist.firebasestorage.app",
+  messagingSenderId: "430189439080",
+  appId: "1:430189439080:web:aeab2c9a4e829ea16ab3dd"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let roomCode = null;
+let currentFloor = 1;
+let doorsState = {};
+let doorsStateOld = {};
+
+const DOORS = [
+  { id:"2f_general_office", label:"General Office Key", floor:2, top:"71.8834%", left:"30.855%" },
+  { id:"darkroom", label:"Darkroom Key", floor:1, top:"77.2353%", left:"74.697%" },
+  { id:"infirmary", label:"Infirmary Key", floor:1, top:"57.7608%", left:"35.7576%" },
+  { id:"2f_directors_office", label:"Director's Office Key", floor:2, top:"86.5%", left:"56%" },
+  { id:"post_production", label:"Post-Production Room Key", floor:1, top:"44.8936%", left:"71.9697%" },
+  { id:"editing_room", label:"Editing Room Key", floor:2, top:"5.17527%", left:"26.5909%" },
+  { id:"planning_room", label:"Planning Room Key", floor:1, top:"38.8046%", left:"43.2955%" }
+];
+
+function generateCode() { return Math.random().toString(36).substring(2,7).toUpperCase(); }
+
+function createRoom() {
+  roomCode = generateCode();
+  const now = Date.now();
+  const doors = {};
+  DOORS.forEach(d => doors[d.id] = false);
+
+  db.ref("rooms/" + roomCode).set({
+    createdAt: now,
+    expiresAt: now + 40*60*1000,
+    doors
+  }).then(() => joinRoom(roomCode));
+}
+
+function joinRoomInput() {
+  const input = document.getElementById("joinCode").value.trim().toUpperCase();
+  if(!input) { alert("Enter a room code"); return; }
+  roomCode = input;
+  joinRoom(roomCode);
+}
+
+function joinRoom(code) {
+  const roomRef = db.ref("rooms/" + code);
+  roomRef.once("value", snap => {
+    if(!snap.exists()) { alert("Room not found or expired"); return; }
+    const room = snap.val();
+    if(Date.now() > room.expiresAt) { alert("Room expired"); return; }
+
+    document.getElementById("room").innerText = "Room: " + code;
+
+    // Unhide map and floor buttons
+    document.querySelector(".map-container").classList.remove("hidden");
+    document.getElementById("floor-buttons").classList.remove("hidden");
+
+    // Ensure we are on the default floor before rendering
+    currentFloor = 1;
+
+    // Fetch current door state immediately for first render
+    roomRef.child("doors").once("value").then(snap => {
+      doorsState = snap.val();
+      doorsStateOld = {...doorsState};
+
+      // Render doors for currentFloor
+      renderDoors();
+    });
+
+    // Listen for real-time updates
+    roomRef.child("doors").on("value", snap => {
+      const newDoors = snap.val();
+      for(const key in newDoors) {
+        if(!doorsStateOld[key] && newDoors[key]) {
+          showNotification(`${DOORS.find(d=>d.id===key).label} unlocked!`);
+        }
+      }
+      doorsStateOld = {...doorsState};
+      doorsState = newDoors;
+      renderDoors();
+    });
+  });
+}
+
+
+function renderDoors() {
+  const container = document.querySelector(".map-container");
+  if(!container || !roomCode) return;
+
+  // Remove old buttons
+  document.querySelectorAll(".door-icon").forEach(el => el.remove());
+
+  DOORS.forEach(d => {
+    const btn = document.createElement("button");
+    btn.classList.add("door-icon");
+    if(doorsState[d.id]) btn.classList.add("opened");
+
+    btn.style.top = d.top;
+    btn.style.left = d.left;
+    btn.setAttribute("data-id", d.id); // use id
+    btn.setAttribute("data-label", d.label); // keep label for tooltip
+
+
+    // Show buttons only for current floor
+    btn.style.display = d.floor === currentFloor ? "block" : "none";
+
+    btn.onclick = () => {
+      if(!roomCode) return;
+      const newValue = !btn.classList.contains("opened");
+      btn.classList.toggle("opened", newValue);
+      db.ref(`rooms/${roomCode}/doors/${d.id}`).set(newValue);
+    };
+
+    container.appendChild(btn);
+  });
+}
+
+
+
+function showNotification(text) {
+  const notif = document.getElementById("notification");
+  notif.innerText = text;
+  notif.style.display = "block";
+  setTimeout(()=>{ notif.style.display = "none"; }, 3000);
+}
+
+function switchFloor(floor) {
+  currentFloor = floor;
+  document.getElementById("map-image").src = floor === 1 ? "floor1.png" : "floor2.png";
+  document.querySelectorAll(".floor-btn").forEach(btn => btn.classList.remove("active"));
+  document.querySelector(`.floor-btn:nth-child(${floor})`).classList.add("active");
+
+  // Show only buttons for the current floor
+  document.querySelectorAll(".door-icon").forEach(btn => {
+  const doorId = btn.getAttribute("data-id");
+  const door = DOORS.find(d => d.id === doorId);
+  btn.style.display = door && door.floor === floor ? "block" : "none";
+});
+}
+
+</script>
+</body>
+</html>
