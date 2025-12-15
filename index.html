@@ -64,7 +64,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 .action-buttons { display: flex; gap: 8px; }
 .color-selector-row { margin-top:10px; }
 .page-layout { position: relative; width: 100%; min-height: 100vh; }
-/* Side cards (Door & History) */
+
 .side-card {
   width: 260px;
   background: #141822;
@@ -74,16 +74,11 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
   margin-top: 440px;
 }
 
-/* Door checklist - left side of main card */
-#door-card {
-  left: calc(50% - 700px / 2 - 280px); /* left of main card */
-}
-
 :root {
   --history-row-height: 22px;
   --history-visible-rows: 10;
   --history-header-height: 34px; 
-  --history-max-height: 220px; 
+  --history-max-height: 220px;
 }
 
 .door-opened-by {
@@ -93,24 +88,28 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
   margin-top: 2px;
 }
 
+#door-card {
+  left: calc(50% - 650px);
+}
+
 #history-card {
   position: absolute;
   top: 20px;
 
-  right: calc(50% - 500px); /* anchor RIGHT edge of main card */
-  left: auto;
+  right: calc(50% - 650px);
+  
 
   display: inline-block;
   width: max-content;
   min-width: 260px;
   max-width: 90vw;
-
+  
   background: #141822;
   border-radius: 10px;
   padding: 15px;
 
-  white-space: nowrap;
-  overflow: visible;
+  white-space: normal;
+  overflow: break-word;
   z-index: 50;
   transition: width 0.25s ease;
 }
@@ -239,8 +238,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
   <ul id="door-list"></ul>
 </div>
 
-<div id="history-card" class="side-card hidden"
-     style="right: calc(50% - 700px / 2 - 320px); left: auto; margin-top: 440px;">
+<div id="history-card" class="side-card hidden">
   <h3>History</h3>
   <ul id="history-list"></ul>
 </div>
@@ -258,6 +256,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 let username = null, userUID = null, roomCode = null, currentFloor = 1;
 let doorsState = {}, usersCache = {}, timerInterval = null, roomExpiresAt = 0, userColor = null;
 const COLOR_MAP = {green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6"};
+const MAX_HISTORY = 15;
 
 // Firebase init
 const firebaseConfig = {
