@@ -273,7 +273,7 @@ function resetDoors(){
 
 // --- Delete room ---
 function deleteRoom(){
-  if(!roomCode) return; if(!confirm("Are you sure?")) return;
+  if(!roomCode) return; if(!confirm("Are you sure you want to delete the room? The sun will explode.")) return;
   const codeToDelete = roomCode;
   db.ref(`rooms/${codeToDelete}/lastAction`).set({ type:"delete", by:username, at:Date.now() }).then(()=>{
     setTimeout(()=>{
@@ -323,3 +323,4 @@ function showNotification(html){
 </script>
 </body>
 </html>
+
