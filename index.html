@@ -268,7 +268,6 @@ function joinRoom(code) {
       document.getElementById("door-card").classList.remove("hidden");
 
       document.getElementById("input-row").classList.add("hidden");
-      document.getElementById("color-selector").classList.add("hidden");
 
       currentFloor = 1;
 
@@ -423,7 +422,6 @@ function cleanupRoomState(){
   document.getElementById("users-list").classList.add("hidden");
   document.getElementById("door-card").classList.add("hidden");
   document.getElementById("input-row").classList.remove("hidden");
-  document.getElementById("color-selector").classList.remove("hidden");
 
 
   document.querySelectorAll(".door-icon").forEach(btn=>btn.remove());
@@ -503,3 +501,4 @@ function showNotification(html){
 </div>
 </body>
 </html>
+
