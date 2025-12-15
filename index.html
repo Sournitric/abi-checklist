@@ -31,7 +31,7 @@ button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-ra
   background: rgba(0,255,0,0.55);
 }
 
-.door-icon:hover::after { content: attr(data-label); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10; min-width: max-content; text-align: center; }
+.door-icon:hover::after { content: attr(data-label); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10; min-width: max-content; text-align: center; overflow-wrap: break-word;}
 #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
 input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px; border-radius: 6px; border: none; font-size: 14px; }
 .hidden { display: none !important; }
@@ -79,36 +79,40 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
   left: calc(50% - 700px / 2 - 280px); /* left of main card */
 }
 
-
-
-
-
-:root {
-  --history-max-height: 220px; 
-}
-
-/* Height tuning variables */
 :root {
   --history-row-height: 22px;
   --history-visible-rows: 10;
-  --history-header-height: 34px; /* h3 height + margin */
+  --history-header-height: 34px; 
+  --history-max-height: 220px; 
 }
 
-
-
+.door-opened-by {
+  display: block;
+  font-size: 11px;
+  opacity: 0.75;
+  margin-top: 2px;
+}
 
 #history-card {
   position: absolute;
-  top: 20px;                          /* align with the top of the main card */
-  left: calc(50% + 360px);            /* right of main card */
-  min-width: 260px;                    /* minimum width even if empty */
-  max-width: 600px;                    /* optional max width */
+  top: 20px;
+
+  right: calc(50% - 500px); /* anchor RIGHT edge of main card */
+  left: auto;
+
+  display: inline-block;
+  width: max-content;
+  min-width: 260px;
+  max-width: 90vw;
+
   background: #141822;
   border-radius: 10px;
   padding: 15px;
-  overflow-x: auto;                    /* horizontal scroll if needed */
-  white-space: nowrap;                 /* keep entries on one line */
-  z-index: 50;                         /* appear above background */
+
+  white-space: nowrap;
+  overflow: visible;
+  z-index: 50;
+  transition: width 0.25s ease;
 }
 
 #history-list {
@@ -120,16 +124,47 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 #history-list li {
   line-height: var(--history-row-height);
   font-size: 13px;
-  white-space: nowrap;              
-  overflow: visible;
-  text-overflow: clip;
-  margin: 4px 0;
+  text-align: left;
+  margin: 0 0 6px;
+
+  white-space: nowrap;   /* keep entries one line */
+}
+#history-card h3 {
+  text-align: left;
+  margin-top: 0;
+  margin-bottom: 10px;
 }
 
+#door-list li {
+  transition: background 0.25s ease, transform 0.15s ease;
+}
 
+#door-list li.door-opened {
+  background: rgba(46,204,113,0.25);
+}
 
+#door-list li.door-closed {
+  background: rgba(231,76,60,0.25);
+}
 
+#door-list li.animate {
+  transform: scale(1.03);
+}
 
+.door-title {
+  font-weight: bold;
+}
+
+.door-meta {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.door-time {
+  margin-left: 6px;
+  color: #aaa;
+}
 
 .progress-wrap { margin-bottom: 12px; }
 #door-progress { width: 100%; height: 10px; background: #222; border-radius: 6px; overflow: hidden; margin: 8px 0 12px; }
@@ -143,9 +178,9 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
   <div class="card">
     <h2>Raid Door Checklist</h2>
 
-    <!-- User + Room Controls -->
+    
     <div id="input-row" class="input-row">
-      <input type="text" id="username" placeholder="Your name">
+      <input type="text" id="username" placeholder="Your name" maxlength="20">
       <input type="text" id="joinCode" placeholder="Room code">
       <div class="action-buttons">
         <button onclick="createRoom()">Create Raid</button>
@@ -153,7 +188,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
       </div>
     </div>
 
-    <!-- Colour selector -->
+    
     <div id="color-selector" class="color-selector-row">
       <label for="userColor">Choose your colour:</label>
       <select id="userColor" style="height:30px;">
@@ -166,7 +201,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
       <input type="text" id="advancedColorInput" placeholder="#HEX" style="display:none; width:80px; margin-left:5px;">
     </div>
 
-    <!-- Room info -->
+    
     <div id="room-info" class="hidden" style="margin-top:10px;">
       Room: <span id="room-code"></span><br>
       Time left: <span id="room-timer">--:--</span><br>
@@ -175,18 +210,18 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
       <button onclick="leaveRoom()" style="margin-top:5px; margin-left:5px;">Leave Room</button>
     </div>
 
-    <!-- Users in room -->
+    
     <div id="users-list" class="hidden" style="margin-top:10px;"></div>
 
 
  
-    <!-- Floor buttons -->
+    
     <div id="floor-buttons" class="hidden" style="margin-top:10px;">
       <button class="floor-btn active" onclick="switchFloor(1)">Floor 1</button>
       <button class="floor-btn" onclick="switchFloor(2)">Floor 2</button>
     </div>
 
-    <!-- Map -->
+    
     <div class="map-container hidden">
       <img id="map-image" class="map-image" src="floor1.png" alt="Floor Map">
     </div>
@@ -205,7 +240,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 </div>
 
 <div id="history-card" class="side-card hidden"
-     style="right: calc(50% - 700px / 2 - 280px); left: auto; margin-top: 440px;">
+     style="right: calc(50% - 700px / 2 - 320px); left: auto; margin-top: 440px;">
   <h3>History</h3>
   <ul id="history-list"></ul>
 </div>
@@ -219,7 +254,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// --- GLOBAL STATE ---
+
 let username = null, userUID = null, roomCode = null, currentFloor = 1;
 let doorsState = {}, usersCache = {}, timerInterval = null, roomExpiresAt = 0, userColor = null;
 const COLOR_MAP = {green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6"};
@@ -243,7 +278,7 @@ firebase.auth().signInAnonymously().then(res=>{
   console.log("Signed in anonymously UID", userUID);
 }).catch(err=>console.error("Anonymous sign-in failed", err));
 
-// Doors
+
 const DOORS = [
   { id:"2f_general_office", label:"General Office", floor:2, top:"71.8834%", left:"30.855%" },
   { id:"darkroom", label:"Darkroom", floor:1, top:"77.2353%", left:"74.697%" },
@@ -254,7 +289,7 @@ const DOORS = [
   { id:"planning_room", label:"Planning Room", floor:1, top:"38.8046%", left:"43.2955%" }
 ];
 
-// --- Color selector ---
+
 const colorSelect = document.getElementById("userColor");
 const advancedBtn = document.getElementById("advancedColorBtn");
 const advancedInput = document.getElementById("advancedColorInput");
@@ -274,11 +309,15 @@ function updateUserColor(colorKeyOrHex){
   db.ref(`rooms/${roomCode}/users/${userUID}`).update({ color:userColor });
 }
 
-// --- Room & Doors Functions ---
+
 
 function createRoom() {
   if(roomCode) { alert("Leave the current room first."); return; }
   username = document.getElementById("username").value.trim(); 
+  if (username.length < 3 || username.length > 20) {
+      alert("Username must be between 3 and 20 characters.");
+      return;
+  }  
   if(!username) { alert("Enter your name"); return; }
   roomCode = Math.random().toString(36).substring(2,7).toUpperCase();
   const now = Date.now();
@@ -290,6 +329,10 @@ function createRoom() {
 function joinRoomInput() {
   if(roomCode) { alert("Leave the current room first."); return; }
   username = document.getElementById("username").value.trim();
+  if (username.length < 3 || username.length > 20) {
+    alert("Username must be between 3 and 20 characters.");
+    return;
+  }  
   if(!username) { alert("Enter your name"); return; }
   const input = document.getElementById("joinCode").value.trim().toUpperCase();
   if(!input) { alert("Enter a room code"); return; }
@@ -304,7 +347,7 @@ function joinRoom(code) {
     const room = roomSnap.val();
     if (Date.now() > room.expiresAt) { alert("Room expired"); return; }
 
-    // Step 1: Check for username conflicts
+    
     const usersRef = db.ref(`rooms/${code}/users`);
     usersRef.once("value").then(snap => {
       const users = snap.val() || {};
@@ -312,9 +355,7 @@ function joinRoom(code) {
       if (nameTaken) {
         alert("That username is already taken in this room.");
         return;
-      }
-
-      // Step 2: Safe to join - set your user info
+      } 
       const userRef = db.ref(`rooms/${code}/users/${userUID}`);
       if (!userColor) userColor = COLOR_MAP.green;
       userRef.set({
@@ -326,7 +367,7 @@ function joinRoom(code) {
 
       roomCode = code;
 
-      // Step 3: Setup UI
+      
       document.getElementById("room-code").innerText = code;
       document.getElementById("room-info").classList.remove("hidden");
       document.getElementById("users-list").classList.remove("hidden");
@@ -337,7 +378,7 @@ function joinRoom(code) {
       document.getElementById("input-row").classList.add("hidden");
       currentFloor = 1;
 
-      // Step 4: Listen for users in the room
+      
       let previousUsers = {};
       usersRef.on("value", snap => {
         const users = snap.val() || {};
@@ -354,7 +395,7 @@ function joinRoom(code) {
         document.getElementById("users-list").innerHTML = "Users in room: " + (list || "None");
       });
 
-      // Step 5: Setup room timer
+      
       roomExpiresAt = room.expiresAt;
       if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(() => {
@@ -372,7 +413,7 @@ function joinRoom(code) {
           `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
       }, 1000);
 
-      // Step 6: Listen for doors
+     
       roomRef.child("doors").once("value").then(snap => {
         doorsState = snap.val() || {};
         renderDoors();
@@ -394,7 +435,7 @@ function joinRoom(code) {
         }
       });
 
-      // Step 7: Listen for room deletion
+      
      roomRef.on("value", snap => {
   const data = snap.val();
   if (!snap.exists() || data?.deleting) {
@@ -410,7 +451,7 @@ function joinRoom(code) {
 });
 
 
-      // Step 8: Listen for last action (resets)
+      
      roomRef.child("lastAction").on("value", snap => {
   const action = snap.val();
   if (!action || action.type !== "reset") return;
@@ -434,7 +475,7 @@ historyRef.limitToLast(10).on("value", snap => {
     entries.push(childSnap.val());
   });
 
-  // entries are already in correct order from Firebase
+  
   entries.forEach(e => {
     const user = usersCache?.[e.by];
     const name = user?.name || "Unknown";
@@ -446,7 +487,7 @@ historyRef.limitToLast(10).on("value", snap => {
     list.appendChild(li);
   });
 
-  // Ensure newest entry is visible
+  
   list.scrollTop = list.scrollHeight;
 });
 
@@ -456,12 +497,12 @@ historyRef.limitToLast(10).on("value", snap => {
 }
 
 
-// --- Render Doors & Door List ---
+
 function renderDoors() {
   const container = document.querySelector(".map-container");
   if (!container || !roomCode) return;
 
-  // Remove old door buttons
+  
   document.querySelectorAll(".door-icon").forEach(el => el.remove());
 
   DOORS.forEach(d => {
@@ -476,12 +517,16 @@ function renderDoors() {
     btn.setAttribute("data-label", d.label);
     btn.style.display = d.floor === currentFloor ? "block" : "none";
 
-    // Click handler for map buttons
+    
     btn.onclick = () => {
       if (!roomCode) return;
       const newOpened = !btn.classList.contains("opened");
       btn.classList.toggle("opened", newOpened);
-     db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ opened: newOpened, by: userUID });
+      db.ref(`rooms/${roomCode}/doors/${d.id}`).set({
+        opened: newOpened,
+        by: userUID,
+        at: newOpened ? Date.now() : null
+      });
 
 logHistory({
   type: "door",
@@ -495,42 +540,84 @@ logHistory({
   });
 }
 
-
 function renderDoorList() {
   if (!roomCode) return;
+
   const list = document.getElementById("door-list");
   const text = document.getElementById("door-progress-text");
   const bar = document.getElementById("door-progress-bar");
+
   list.innerHTML = "";
   let openedCount = 0;
-  const sortedDoors = [...DOORS].sort((a,b)=>b.floor-a.floor);
+
+  const sortedDoors = [...DOORS].sort((a, b) => b.floor - a.floor);
+
   sortedDoors.forEach(door => {
-    const state = doorsState[door.id]; if(!state) return;
-    if(state.opened) openedCount++;
+    const state = doorsState[door.id];
+    if (!state) return;
+
+    if (state.opened) openedCount++;
+
     const li = document.createElement("li");
-    li.style.cursor="pointer"; li.style.margin="6px 0"; li.style.padding="6px 10px"; li.style.borderRadius="6px";
-    li.style.background = state.opened ? "rgba(46,204,113,0.25)" : "rgba(231,76,60,0.25)";
-    li.innerText = `${door.label} (${door.floor===2?"2F":"1F"})`;
-    li.onclick = () => { 
-   const newState = !state.opened;
-db.ref(`rooms/${roomCode}/doors/${door.id}`).set({ opened: newState, by: userUID });
+    li.style.cursor = "pointer";
+    li.style.margin = "6px 0";
+    li.style.padding = "6px 10px";
+    li.style.borderRadius = "6px";
 
-logHistory({
-  type: "door",
-  by: userUID,
-  text: `${newState ? "opened" : "closed"} ${door.label}`
-});
+    li.classList.add(state.opened ? "door-opened" : "door-closed");
 
-};
+    // animation
+    li.classList.add("animate");
+    setTimeout(() => li.classList.remove("animate"), 150);
+
+    // user info
+    const user = usersCache[state.by];
+    const name = user?.name || "Unknown";
+    const color = user?.color || "#fff";
+    const openedAt = state.at
+      ? new Date(state.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : "";
+
+    li.innerHTML = `
+      <div class="door-title">
+        ${door.label} (${door.floor === 2 ? "2F" : "1F"})
+      </div>
+      ${
+        state.opened
+          ? `<div class="door-meta">
+               opened by <span style="color:${color}; font-weight:bold;">${name}</span>
+               <span class="door-time">${openedAt}</span>
+             </div>`
+          : ""
+      }
+    `;
+
+    li.onclick = () => {
+      const newState = !state.opened;
+
+      db.ref(`rooms/${roomCode}/doors/${door.id}`).set({
+        opened: newState,
+        by: userUID,
+        at: newState ? Date.now() : null
+      });
+
+      logHistory({
+        type: "door",
+        by: userUID,
+        text: `${newState ? "opened" : "closed"} ${door.label}`
+      });
+    };
+
     list.appendChild(li);
   });
+
   const total = DOORS.length;
-  const percent = total ? Math.round((openedCount/total)*100) : 0;
+  const percent = total ? Math.round((openedCount / total) * 100) : 0;
+
   text.innerText = `${openedCount} / ${total} opened`;
-  bar.style.width = percent+"%";
+  bar.style.width = percent + "%";
 }
 
-// --- Floor Switch ---
 function switchFloor(floor){
   currentFloor=floor;
   document.getElementById("map-image").src=floor===1?"floor1.png":"floor2.png";
@@ -542,7 +629,7 @@ function switchFloor(floor){
   });
 }
 
-// --- Reset / Delete / Leave ---
+
 function resetDoors(){
   if(!roomCode || !username) return;
   const resetState = {}; DOORS.forEach(d=>resetState[d.id]={opened:false,by:null});
@@ -586,7 +673,7 @@ function leaveRoom(){
   showNotification(`You left room <b>(${roomCode})</b>`);
 }
 
-// --- Cleanup ---
+
 function cleanupRoomState(){
   if(timerInterval) clearInterval(timerInterval);
   if(roomCode){
@@ -608,13 +695,12 @@ function cleanupRoomState(){
   document.getElementById("users-list").innerHTML="";
 db.ref(`rooms/${roomCode}/history`).off();
 document.getElementById("history-list").innerHTML = "";
-document.getElementById("history-box").classList.add("hidden");
 
   setLobbyLocked(false);
   roomCode=null; doorsState={}; usersCache={};
 }
 
-// --- UI Helpers ---
+
 function setLobbyLocked(locked){
   document.getElementById("joinCode").disabled=locked;
   document.getElementById("username").disabled=locked;
