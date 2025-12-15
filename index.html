@@ -7,7 +7,8 @@
 <style>
   * { box-sizing: border-box; }
   body { background: #0f1115; color: #e6e6e6; font-family: Arial, sans-serif; padding: 20px; }
-  .card { max-width: 700px; margin: auto; background: #1b1f2a; padding: 20px; border-radius: 10px; }
+  .card { max-width: 700px; margin: 0; background: #1b1f2a; padding: 20px; border-radius: 10px; justify-content: center; order: 2;}
+
   button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-radius: 6px; background: #4095f4; color: white; font-size: 14px; cursor: pointer; }
   .floor-btn.active { background: #2d6cd2; }
   .map-container { position: relative; width: 100%; margin-top: 15px; }
@@ -17,20 +18,63 @@
   .door-icon:hover::after { content: attr(data-label); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10; min-width: max-content; text-align: center; }
   #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
   input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px; border-radius: 6px; border: none; font-size: 14px; }
-  .hidden { display: none; }
+  .hidden { display: none !important; }
   .input-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
   .input-row input { flex: 1; max-width: 200px; }
   .action-buttons { display: flex; gap: 8px; }
   .color-selector-row { margin-top:10px; }
+  .page-layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+  }
+  .side-card {
+    width: 260px;
+    background: #141822;
+    border-radius: 10px;
+    padding: 15px;
+    margin-right: 20px;
+    margin-top: 440px;
+    order: 1;
+  }
+  .progress-wrap {
+    margin-bottom: 12px;
+  }
+  #door-progress {
+    width: 100%;
+    height: 10px;
+    background: #222;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 8px 0 12px;
+  }
+
+  #door-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #2ecc71; /* solid green */
+    transition: width 0.25s ease;
+  }
+  #door-progress-text {
+    font-size: 13px;
+    color: #bbb;
+  }
+  #door-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
 </style>
 </head>
 <body>
-
+<div class="page-layout">
 <div class="card">
   <h2>Raid Door Checklist</h2>
 
   <!-- User + Room Controls -->
-  <div class="input-row">
+  <div id="input-row" class="input-row">
     <input type="text" id="username" placeholder="Your name">
     <input type="text" id="joinCode" placeholder="Room code">
     <div class="action-buttons">
@@ -40,7 +84,7 @@
   </div>
 
   <!-- Colour selector -->
-  <div class="color-selector-row">
+  <div id="color-selector" class="color-selector-row">
     <label for="userColor">Choose your colour:</label>
     <select id="userColor" style="height: 30px;">
       <option value="green">Green</option>
@@ -53,7 +97,7 @@
   </div>
 
   <!-- Room info -->
-  <div id="room-info" style="margin-top:10px;">
+  <div id="room-info" class="hidden" style="margin-top:10px;">
     Room: <span id="room-code"></span><br>
     Time left: <span id="room-timer">--:--</span><br>
     <button id="reset-btn" onclick="resetDoors()" style="margin-top:5px;">Reset Doors</button>
@@ -62,7 +106,7 @@
   </div>
 
   <!-- Users in room -->
-  <div id="users-list" style="margin-top:10px;"></div>
+  <div id="users-list" class="hidden" style="margin-top:10px;"></div>
 
   <!-- Floor buttons -->
   <div id="floor-buttons" class="hidden" style="margin-top:10px;">
@@ -74,8 +118,19 @@
   <div class="map-container hidden">
     <img id="map-image" class="map-image" src="floor1.png" alt="Floor Map">
   </div>
-</div>
 
+</div>
+<div id="door-card" class="side-card hidden">
+  <div class="progress-wrap">
+    <div id="door-progress-text">0 / 0 opened</div>
+
+    <div id="door-progress">
+      <div id="door-progress-bar"></div>
+    </div>
+  </div>
+  <h3>Door Checklist</h3>
+  <ul id="door-list"></ul>
+</div>
 <div id="notifications-container"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -90,6 +145,7 @@ let doorsStateOld = {};
 let timerInterval = null;
 let roomExpiresAt = 0;
 let usersCache = {};
+let openedCount = 0;
 
 const COLOR_MAP = { green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6" };
 let userColor = null;
@@ -108,10 +164,10 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const DOORS = [
-  { id:"2f_general_office", label:"2F General Office", floor:2, top:"71.8834%", left:"30.855%" },
+  { id:"2f_general_office", label:"General Office", floor:2, top:"71.8834%", left:"30.855%" },
   { id:"darkroom", label:"Darkroom", floor:1, top:"77.2353%", left:"74.697%" },
   { id:"infirmary", label:"Infirmary", floor:1, top:"57.7608%", left:"35.7576%" },
-  { id:"2f_directors_office", label:"2F Director's Office", floor:2, top:"86.5%", left:"56%" },
+  { id:"2f_directors_office", label:"Director's Office", floor:2, top:"86.5%", left:"56%" },
   { id:"post_production", label:"Post-Production Room", floor:1, top:"44.8936%", left:"71.9697%" },
   { id:"editing_room", label:"Editing Room", floor:2, top:"5.17527%", left:"26.5909%" },
   { id:"planning_room", label:"Planning Room", floor:1, top:"38.8046%", left:"43.2955%" }
@@ -148,7 +204,7 @@ advancedInput.addEventListener("change", () => {
 
 function createRoom() {
   if(roomCode) { alert("Leave the current room first."); return; }
-  username = document.getElementById("username").value.trim();
+  username = document.getElementById("username").value.trim(); 
   if(!username) { alert("Enter your name"); return; }
   roomCode = Math.random().toString(36).substring(2,7).toUpperCase();
   const now = Date.now();
@@ -167,76 +223,131 @@ function joinRoomInput() {
   joinRoom(roomCode);
 }
 
-
 function joinRoom(code) {
-  const roomRef = db.ref("rooms/"+code);
-  roomRef.once("value").then(snap=>{
-    if(!snap.exists()){ alert("Room not found."); roomCode=null; return; }
-    const room = snap.val();
-    if(Date.now() > room.expiresAt){ alert("Room expired"); roomCode=null; return; }
+  const roomRef = db.ref("rooms/" + code);
 
-    document.getElementById("room-code").innerText=code;
-    document.querySelector(".map-container").classList.remove("hidden");
-    document.getElementById("floor-buttons").classList.remove("hidden");
-    currentFloor=1;
+  roomRef.once("value").then(roomSnap => {
+    if (!roomSnap.exists()) {
+      alert("Room not found.");
+      return;
+    }
 
-    
-    const usersRef = db.ref(`rooms/${roomCode}/users`);
-    usersRef.once("value").then(snap=>{
-      const users = snap.val() || {};
-      if(!userColor) userColor = COLOR_MAP["green"]; // default green
-      db.ref(`rooms/${roomCode}/users/${username}`).set({ joinedAt:Date.now(), color:userColor });
-      db.ref(`rooms/${roomCode}/users/${username}`).onDisconnect().remove();
-    });
+    const room = roomSnap.val();
+    if (Date.now() > room.expiresAt) {
+      alert("Room expired");
+      return;
+    }
 
-    
-    db.ref(`rooms/${roomCode}/users`).on("value", snap=>{
-      const users = snap.val() || {};
-      usersCache = users;
-      const list = Object.entries(users).map(([name,data])=>`<span style="color:${data.color}; font-weight:bold;">${name}</span>`).join(", ");
-      document.getElementById("users-list").innerHTML = "Users in room: "+(list||"None");
-    });
+    // ---- CHECK USERNAME UNIQUENESS FIRST ----
+    const userRef = db.ref(`rooms/${code}/users/${username}`);
 
-   
-    roomExpiresAt = room.expiresAt;
-    if(timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(()=>{
-      const remaining = roomExpiresAt - Date.now();
-      if(remaining<=0){ document.getElementById("room-timer").innerText="Expired"; leaveRoom(); return; }
-      const totalSeconds = Math.floor(remaining/1000);
-      const hours = Math.floor(totalSeconds/3600);
-      const minutes = Math.floor((totalSeconds%3600)/60);
-      const seconds = totalSeconds%60;
-      document.getElementById("room-timer").innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
-    },1000);
-
-    
-    roomRef.child("doors").once("value").then(snap=>{ doorsState=snap.val(); doorsStateOld={...doorsState}; renderDoors(); });
-
-    
-    roomRef.child("doors").on("child_changed", snap=>{
-      const doorId = snap.key, data = snap.val();
-      doorsState[doorId] = data;
-      renderDoors();
-      if(data.opened){
-        const user = data.by;
-        const color = usersCache?.[user]?.color || "#fff";
-        const door = DOORS.find(d=>d.id===doorId);
-        if(door) showNotification(`<span style="color:${color}; font-weight:bold;">${user}</span> opened ${door.label}`);
+    userRef.once("value").then(userSnap => {
+      if (userSnap.exists()) {
+        alert("That username is already taken in this room.");
+        return;
       }
-    });
 
-    
-    roomRef.child("lastAction").on("value", snap=>{
-      if(!snap.exists()) return;
-      const action = snap.val();
-      const color = usersCache?.[action.by]?.color || "#fff";
-      if(action.type==="reset") showNotification(`<span style="color:${color}; font-weight:bold;">${action.by}</span> reset all doors`);
-      if(action.type==="delete") showNotification(`<span style="color:${color}; font-weight:bold;">${action.by}</span> deleted the room`);
-    });
+      // ✅ Username is unique — NOW we officially join
+      roomCode = code;
 
+      if (!userColor) userColor = COLOR_MAP.green;
+
+      userRef.set({
+        joinedAt: Date.now(),
+        color: userColor
+      });
+
+      userRef.onDisconnect().remove();
+
+      // ---- UI CHANGES (NOW SAFE) ----
+      document.getElementById("room-code").innerText = code;
+      document.getElementById("room-info").classList.remove("hidden");
+      document.getElementById("users-list").classList.remove("hidden");
+      document.querySelector(".map-container").classList.remove("hidden");
+      document.getElementById("floor-buttons").classList.remove("hidden");
+      document.getElementById("door-card").classList.remove("hidden");
+
+      document.getElementById("input-row").classList.add("hidden");
+      document.getElementById("color-selector").classList.add("hidden");
+
+      currentFloor = 1;
+
+      // ---- USERS LIST ----
+      db.ref(`rooms/${roomCode}/users`).on("value", snap => {
+        const users = snap.val() || {};
+        usersCache = users;
+
+        const list = Object.entries(users)
+          .map(([name, data]) =>
+            `<span style="color:${data.color}; font-weight:bold;">${name}</span>`
+          )
+          .join(", ");
+
+        document.getElementById("users-list").innerHTML =
+          "Users in room: " + (list || "None");
+      });
+
+      // ---- ROOM TIMER ----
+      roomExpiresAt = room.expiresAt;
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        const remaining = roomExpiresAt - Date.now();
+        if (remaining <= 0) {
+          document.getElementById("room-timer").innerText = "Expired";
+          leaveRoom();
+          return;
+        }
+
+        const totalSeconds = Math.floor(remaining / 1000);
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+
+        document.getElementById("room-timer").innerText =
+          `${h.toString().padStart(2, "0")}:` +
+          `${m.toString().padStart(2, "0")}:` +
+          `${s.toString().padStart(2, "0")}`;
+      }, 1000);
+
+      // ---- INITIAL DOORS ----
+      roomRef.child("doors").once("value").then(snap => {
+        doorsState = snap.val() || {};
+        renderDoors();
+        renderDoorList();
+      });
+
+      // ---- DOOR CHANGES ----
+      roomRef.child("doors").on("child_changed", snap => {
+        const doorId = snap.key;
+        const data = snap.val();
+        doorsState[doorId] = data;
+        renderDoors();
+        renderDoorList();
+
+        if (data.opened) {
+          const user = data.by;
+          const color = usersCache?.[user]?.color || "#fff";
+          const door = DOORS.find(d => d.id === doorId);
+          if (door) {
+            showNotification(
+              `<span style="color:${color}; font-weight:bold;">${user}</span> opened ${door.label}`
+            );
+          }
+        }
+      });
+
+      // ---- ROOM DELETED ----
+      roomRef.on("value", snap => {
+        if (!snap.exists()) {
+          showNotification("The room was deleted!");
+          cleanupRoomState();
+        }
+      });
+    });
   });
 }
+
 
 
 function renderDoors(){
@@ -272,28 +383,23 @@ function resetDoors(){
 }
 
 
-function deleteRoom(){
-  if(!roomCode) return; if(!confirm("Are you sure you want to delete the room? The sun will explode.")) return;
+function deleteRoom() {
+  if (!roomCode) return;
+  if (!confirm("Are you sure you want to delete the room?")) return;
+
   const codeToDelete = roomCode;
-  db.ref(`rooms/${codeToDelete}/lastAction`).set({ type:"delete", by:username, at:Date.now() }).then(()=>{
-    setTimeout(()=>{
-      db.ref(`rooms/${codeToDelete}`).remove();
-      cleanupRoomState();
-    },300);
+
+  // Notify first (optional, cosmetic)
+  db.ref(`rooms/${codeToDelete}/lastAction`).set({
+    type: "delete",
+    by: username,
+    at: Date.now()
+  }).then(() => {
+
+    // Hard delete the entire room (users included)
+    db.ref(`rooms/${codeToDelete}`).remove();
   });
 }
-
-const roomRef = db.ref(`rooms/${roomCode}`);
-
-
-roomRef.on('value', snap => {
-  if (!snap.exists() && roomCode) {
-   
-    showNotification("The room was deleted!");
-    cleanupRoomState();
-  }
-});
-
 
 
 function leaveRoom(){
@@ -306,14 +412,75 @@ function leaveRoom(){
 
 function cleanupRoomState(){
   if(timerInterval) clearInterval(timerInterval);
+  if (roomCode) {
+    db.ref(`rooms/${roomCode}`).off();          
+    db.ref(`rooms/${roomCode}/doors`).off();  
+    db.ref(`rooms/${roomCode}/users`).off(); 
+  } 
   document.querySelector(".map-container").classList.add("hidden");
   document.getElementById("floor-buttons").classList.add("hidden");
+  document.getElementById("room-info").classList.add("hidden");
+  document.getElementById("users-list").classList.add("hidden");
+  document.getElementById("door-card").classList.add("hidden");
+  document.getElementById("input-row").classList.remove("hidden");
+  document.getElementById("color-selector").classList.remove("hidden");
+
+
   document.querySelectorAll(".door-icon").forEach(btn=>btn.remove());
   document.getElementById("room-code").innerText="";
   document.getElementById("room-timer").innerText="--:--";
   document.getElementById("users-list").innerHTML="";
   setLobbyLocked(false);
-  roomCode=null; doorsState={}; doorsStateOld={}; usersCache={};
+
+  roomCode=null;
+  doorsState={};
+  doorsStateOld={};
+  usersCache={};
+}
+
+function renderDoorList() {
+  if (!roomCode) return;
+
+  const list = document.getElementById("door-list");
+  const text = document.getElementById("door-progress-text");
+  const bar = document.getElementById("door-progress-bar");
+
+  list.innerHTML = "";
+
+  let openedCount = 0;
+
+  DOORS.forEach(door => {
+    const state = doorsState[door.id];
+    if (!state) return;
+
+    if (state.opened) openedCount++;
+
+    const li = document.createElement("li");
+    li.style.cursor = "pointer";
+    li.style.margin = "6px 0";
+    li.style.padding = "6px 10px";
+    li.style.borderRadius = "6px";
+    li.style.background = state.opened
+      ? "rgba(46, 204, 113, 0.25)"
+      : "rgba(231, 76, 60, 0.25)";
+
+    li.innerText = `${door.label} (${door.floor === 1 ? "1F" : "2F"})`;
+
+    li.onclick = () => {
+      db.ref(`rooms/${roomCode}/doors/${door.id}`).set({
+        opened: !state.opened,
+        by: username
+      });
+    };
+
+    list.appendChild(li);
+  });
+
+  const total = DOORS.length;
+  const percent = total ? Math.round((openedCount / total) * 100) : 0;
+
+  text.innerText = `${openedCount} / ${total} opened`;
+  bar.style.width = percent + "%";
 }
 
 
@@ -333,5 +500,6 @@ function showNotification(html){
   setTimeout(()=>{ notif.style.opacity="0"; setTimeout(()=>container.removeChild(notif),500); },3000);
 }
 </script>
+</div>
 </body>
 </html>
