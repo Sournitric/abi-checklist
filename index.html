@@ -175,6 +175,23 @@ function joinRoom(code) {
     const room = snap.val();
     if(Date.now() > room.expiresAt){ alert("Room expired"); roomCode=null; return; }
 
+// Listen for reset / delete actions
+lastActionRef.on("value", snap => {
+  if (!snap.exists()) return;
+  const action = snap.val();
+
+  if (action.type === "reset") {
+    showNotification(`${action.by} reset all doors`);
+  }
+
+  if (action.type === "delete") {
+    showNotification(`${action.by} deleted the room`);
+    cleanupRoomState(); // This hides everything for this client too
+  }
+});
+
+
+
     document.getElementById("room-code").innerText=code;
     document.querySelector(".map-container").classList.remove("hidden");
     document.getElementById("floor-buttons").classList.remove("hidden");
