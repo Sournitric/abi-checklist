@@ -7,7 +7,17 @@
 <style>
   * { box-sizing: border-box; }
   body { background: #0f1115; color: #e6e6e6; font-family: Arial, sans-serif; padding: 20px; }
-  .card { max-width: 700px; margin: 0; background: #1b1f2a; padding: 20px; border-radius: 10px; justify-content: center; order: 2;}
+  .card {
+    max-width: 700px;
+    background: #1b1f2a;
+    padding: 20px;
+    border-radius: 10px;
+
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
 
   button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-radius: 6px; background: #4095f4; color: white; font-size: 14px; cursor: pointer; }
   .floor-btn.active { background: #2d6cd2; }
@@ -24,19 +34,19 @@
   .action-buttons { display: flex; gap: 8px; }
   .color-selector-row { margin-top:10px; }
   .page-layout {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
     position: relative;
+    width: 100%;
+    min-height: 100vh;
   }
   .side-card {
     width: 260px;
     background: #141822;
     border-radius: 10px;
     padding: 15px;
-    margin-right: 20px;
+
+    position: absolute;
+    left: calc(50% - 700px / 2 - 280px);
     margin-top: 440px;
-    order: 1;
   }
   .progress-wrap {
     margin-bottom: 12px;
@@ -268,12 +278,23 @@ function joinRoom(code) {
       document.getElementById("door-card").classList.remove("hidden");
 
       document.getElementById("input-row").classList.add("hidden");
-
+      
       currentFloor = 1;
 
       // ---- USERS LIST ----
+      let previousUsers = {};
+
       db.ref(`rooms/${roomCode}/users`).on("value", snap => {
         const users = snap.val() || {};
+
+        // Detect users who left (excluding yourself)
+        Object.keys(previousUsers).forEach(name => {
+          if (!users[name] && name !== username) {
+            showNotification(`<b>${name}</b> left the room`);
+          }
+        });
+
+        previousUsers = { ...users };
         usersCache = users;
 
         const list = Object.entries(users)
@@ -284,7 +305,8 @@ function joinRoom(code) {
 
         document.getElementById("users-list").innerHTML =
           "Users in room: " + (list || "None");
-      });
+        });
+
 
       // ---- ROOM TIMER ----
       roomExpiresAt = room.expiresAt;
@@ -339,8 +361,14 @@ function joinRoom(code) {
       // ---- ROOM DELETED ----
       roomRef.on("value", snap => {
         if (!snap.exists()) {
-          showNotification("The room was deleted!");
           cleanupRoomState();
+          return;
+        }
+
+        const data = snap.val();
+        if (data?.deleting) {
+          const by = data.deletedBy || "Unknown";
+          showNotification(`Room was deleted by <b>${by}</b>`);
         }
       });
     });
@@ -375,10 +403,24 @@ function switchFloor(floor){
 
 
 function resetDoors(){
-  if(!roomCode) return;
-  const resetState={};
-  DOORS.forEach(d=>resetState[d.id]={opened:false});
-  db.ref(`rooms/${roomCode}`).update({ doors:resetState, lastAction:{type:"reset",by:username,at:Date.now()} });
+  if (!roomCode || !username) return;
+
+  const resetState = {};
+  DOORS.forEach(d => {
+    resetState[d.id] = {
+      opened: false,
+      by: null
+    };
+  });
+
+  db.ref(`rooms/${roomCode}`).update({
+    doors: resetState,
+    lastAction: {
+      type: "reset",
+      by: username,
+      at: Date.now()
+    }
+  });
 }
 
 
@@ -387,25 +429,31 @@ function deleteRoom() {
   if (!confirm("Are you sure you want to delete the room?")) return;
 
   const codeToDelete = roomCode;
+  const roomRef = db.ref(`rooms/${codeToDelete}`);
 
-  // Notify first (optional, cosmetic)
-  db.ref(`rooms/${codeToDelete}/lastAction`).set({
-    type: "delete",
-    by: username,
-    at: Date.now()
-  }).then(() => {
-
-    // Hard delete the entire room (users included)
-    db.ref(`rooms/${codeToDelete}`).remove();
+  // Mark room as deleting + who did it
+  roomRef.update({
+    deleting: true,
+    deletedBy: username,
+    deletedAt: Date.now()
   });
+
+  // Give clients time to read, then delete
+  setTimeout(() => {
+    roomRef.remove();
+  }, 1200);
 }
 
 
 function leaveRoom(){
-  if(!roomCode||!username) return;
+  if(!roomCode || !username) return;
+
+  const code = roomCode;
+
   db.ref(`rooms/${roomCode}/users/${username}`).remove();
   cleanupRoomState();
-  showNotification("You left the room");
+
+  showNotification(`You left room <b>(${code})</b>`);
 }
 
 
@@ -422,6 +470,7 @@ function cleanupRoomState(){
   document.getElementById("users-list").classList.add("hidden");
   document.getElementById("door-card").classList.add("hidden");
   document.getElementById("input-row").classList.remove("hidden");
+  
 
 
   document.querySelectorAll(".door-icon").forEach(btn=>btn.remove());
@@ -447,7 +496,10 @@ function renderDoorList() {
 
   let openedCount = 0;
 
-  DOORS.forEach(door => {
+  // 🔹 Sort: 2F first, then 1F
+  const sortedDoors = [...DOORS].sort((a, b) => b.floor - a.floor);
+
+  sortedDoors.forEach(door => {
     const state = doorsState[door.id];
     if (!state) return;
 
@@ -462,7 +514,7 @@ function renderDoorList() {
       ? "rgba(46, 204, 113, 0.25)"
       : "rgba(231, 76, 60, 0.25)";
 
-    li.innerText = `${door.label} (${door.floor === 1 ? "1F" : "2F"})`;
+    li.innerText = `${door.label} (${door.floor === 2 ? "2F" : "1F"})`;
 
     li.onclick = () => {
       db.ref(`rooms/${roomCode}/doors/${door.id}`).set({
@@ -501,4 +553,3 @@ function showNotification(html){
 </div>
 </body>
 </html>
-
