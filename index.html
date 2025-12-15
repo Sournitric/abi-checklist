@@ -94,9 +94,9 @@ let usersCache = {};
 const COLOR_MAP = { green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6" };
 let userColor = null;
 
-// --- Firebase config ---
+
 const firebaseConfig = {
-  apiKey: "",
+  apiKey: "AIzaSyBjCQ0bC17KHnG9ylIszBtaAnnDPLYqBV0",
   authDomain: "abi-checklist.firebaseapp.com",
   databaseURL: "https://abi-checklist-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "abi-checklist",
@@ -117,7 +117,7 @@ const DOORS = [
   { id:"planning_room", label:"Planning Room", floor:1, top:"38.8046%", left:"43.2955%" }
 ];
 
-// --- Assign colour functions ---
+
 function updateUserColor(colorKeyOrHex) {
   if (!roomCode || !username) return;
   const colorHex = COLOR_MAP[colorKeyOrHex] || colorKeyOrHex;
@@ -125,7 +125,7 @@ function updateUserColor(colorKeyOrHex) {
   db.ref(`rooms/${roomCode}/users/${username}`).update({ color: userColor });
 }
 
-// Dropdown and advanced input
+
 const colorSelect = document.getElementById("userColor");
 const advancedBtn = document.getElementById("advancedColorBtn");
 const advancedInput = document.getElementById("advancedColorInput");
@@ -145,7 +145,7 @@ advancedInput.addEventListener("change", () => {
   else alert("Invalid hex code. Use format: #RRGGBB");
 });
 
-// --- Create/Join Room ---
+
 function createRoom() {
   if(roomCode) { alert("Leave the current room first."); return; }
   username = document.getElementById("username").value.trim();
@@ -167,7 +167,7 @@ function joinRoomInput() {
   joinRoom(roomCode);
 }
 
-// --- Join Room Logic ---
+
 function joinRoom(code) {
   const roomRef = db.ref("rooms/"+code);
   roomRef.once("value").then(snap=>{
@@ -180,7 +180,7 @@ function joinRoom(code) {
     document.getElementById("floor-buttons").classList.remove("hidden");
     currentFloor=1;
 
-    // Add user to room with colour
+    
     const usersRef = db.ref(`rooms/${roomCode}/users`);
     usersRef.once("value").then(snap=>{
       const users = snap.val() || {};
@@ -189,7 +189,7 @@ function joinRoom(code) {
       db.ref(`rooms/${roomCode}/users/${username}`).onDisconnect().remove();
     });
 
-    // Live user list
+    
     db.ref(`rooms/${roomCode}/users`).on("value", snap=>{
       const users = snap.val() || {};
       usersCache = users;
@@ -197,17 +197,7 @@ function joinRoom(code) {
       document.getElementById("users-list").innerHTML = "Users in room: "+(list||"None");
     });
 
-const roomRef = db.ref(`rooms/${roomCode}`);
-
-// Listen for the room being deleted
-roomRef.on('value', snap => {
-  if (!snap.exists() && roomCode) {
-    // Room was deleted
-    showNotification("The room was deleted!");
-    cleanupRoomState();
-  }
-});
-    // Room timer
+   
     roomExpiresAt = room.expiresAt;
     if(timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(()=>{
@@ -220,10 +210,10 @@ roomRef.on('value', snap => {
       document.getElementById("room-timer").innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
     },1000);
 
-    // Fetch doors
+    
     roomRef.child("doors").once("value").then(snap=>{ doorsState=snap.val(); doorsStateOld={...doorsState}; renderDoors(); });
 
-    // Door changes
+    
     roomRef.child("doors").on("child_changed", snap=>{
       const doorId = snap.key, data = snap.val();
       doorsState[doorId] = data;
@@ -236,7 +226,7 @@ roomRef.on('value', snap => {
       }
     });
 
-    // Listen for reset/delete actions
+    
     roomRef.child("lastAction").on("value", snap=>{
       if(!snap.exists()) return;
       const action = snap.val();
@@ -248,7 +238,7 @@ roomRef.on('value', snap => {
   });
 }
 
-// --- Render doors ---
+
 function renderDoors(){
   const container = document.querySelector(".map-container");
   if(!container||!roomCode) return;
@@ -264,7 +254,7 @@ function renderDoors(){
   });
 }
 
-// --- Floor switch ---
+
 function switchFloor(floor){
   currentFloor=floor;
   document.getElementById("map-image").src=floor===1?"floor1.png":"floor2.png";
@@ -273,7 +263,7 @@ function switchFloor(floor){
   document.querySelectorAll(".door-icon").forEach(btn=>{ const door=DOORS.find(d=>d.label===btn.getAttribute("data-label")); btn.style.display=door&&door.floor===floor?"block":"none"; });
 }
 
-// --- Reset doors ---
+
 function resetDoors(){
   if(!roomCode) return;
   const resetState={};
@@ -281,7 +271,7 @@ function resetDoors(){
   db.ref(`rooms/${roomCode}`).update({ doors:resetState, lastAction:{type:"reset",by:username,at:Date.now()} });
 }
 
-// --- Delete room ---
+
 function deleteRoom(){
   if(!roomCode) return; if(!confirm("Are you sure you want to delete the room? The sun will explode.")) return;
   const codeToDelete = roomCode;
@@ -293,7 +283,17 @@ function deleteRoom(){
   });
 }
 
-// --- Leave room ---
+const roomRef = db.ref(`rooms/${roomCode}`);
+
+
+roomRef.on('value', snap => {
+  if (!snap.exists() && roomCode) {
+   
+    showNotification("The room was deleted!");
+    cleanupRoomState();
+  }
+});
+
 function leaveRoom(){
   if(!roomCode||!username) return;
   db.ref(`rooms/${roomCode}/users/${username}`).remove();
@@ -301,7 +301,7 @@ function leaveRoom(){
   showNotification("You left the room");
 }
 
-// --- Cleanup room state ---
+
 function cleanupRoomState(){
   if(timerInterval) clearInterval(timerInterval);
   document.querySelector(".map-container").classList.add("hidden");
@@ -314,14 +314,14 @@ function cleanupRoomState(){
   roomCode=null; doorsState={}; doorsStateOld={}; usersCache={};
 }
 
-// --- Disable/Enable lobby inputs ---
+
 function setLobbyLocked(locked){
   document.getElementById("joinCode").disabled=locked;
   document.getElementById("username").disabled=locked;
   document.querySelectorAll('button[onclick="createRoom()"], button[onclick="joinRoomInput()"]').forEach(btn=>btn.disabled=locked);
 }
 
-// --- Notifications ---
+
 function showNotification(html){
   const container=document.getElementById("notifications-container");
   const notif=document.createElement("div");
@@ -333,5 +333,3 @@ function showNotification(html){
 </script>
 </body>
 </html>
-
-
