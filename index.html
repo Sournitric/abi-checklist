@@ -197,6 +197,16 @@ function joinRoom(code) {
       document.getElementById("users-list").innerHTML = "Users in room: "+(list||"None");
     });
 
+const roomRef = db.ref(`rooms/${roomCode}`);
+
+// Listen for the room being deleted
+roomRef.on('value', snap => {
+  if (!snap.exists() && roomCode) {
+    // Room was deleted
+    showNotification("The room was deleted!");
+    cleanupRoomState();
+  }
+});
     // Room timer
     roomExpiresAt = room.expiresAt;
     if(timerInterval) clearInterval(timerInterval);
@@ -323,4 +333,5 @@ function showNotification(html){
 </script>
 </body>
 </html>
+
 
