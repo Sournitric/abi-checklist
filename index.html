@@ -6,95 +6,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   * { box-sizing: border-box; }
-  body {
-    background: #0f1115;
-    color: #e6e6e6;
-    font-family: Arial, sans-serif;
-    padding: 20px;
-  }
-  .card {
-    max-width: 700px;
-    margin: auto;
-    background: #1b1f2a;
-    padding: 20px;
-    border-radius: 10px;
-  }
-  button, .floor-btn {
-    padding: 8px 12px;
-    margin: 5px 2px;
-    border: none;
-    border-radius: 6px;
-    background: #4095f4;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-  }
+  body { background: #0f1115; color: #e6e6e6; font-family: Arial, sans-serif; padding: 20px; }
+  .card { max-width: 700px; margin: auto; background: #1b1f2a; padding: 20px; border-radius: 10px; }
+  button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-radius: 6px; background: #4095f4; color: white; font-size: 14px; cursor: pointer; }
   .floor-btn.active { background: #2d6cd2; }
-
-  .map-container {
-    position: relative;
-    width: 100%;
-    margin-top: 15px;
-  }
+  .map-container { position: relative; width: 100%; margin-top: 15px; }
   .map-image { width: 100%; display: block; }
-
-  .door-icon {
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid white;
-    background: rgba(255, 0, 0, 0.55);
-    padding: 0;
-    line-height: 0;
-    font-size: 0;
-  }
-  .door-icon.opened { background: rgba(0, 255, 0, 0.55); }
-
-  .door-icon:hover::after {
-    content: attr(data-label);
-    position: absolute;
-    bottom: 130%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #222;
-    color: white;
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 4px;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 10;
-    min-width: max-content;
-    text-align: center;
-  }
-
-  #notification {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: #2d6cd2;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 6px;
-    font-size: 14px;
-    opacity: 0.9;
-    z-index: 100;
-    display: none;
-  }
-
-  input[type="text"] {
-    width: calc(100% - 100px);
-    padding: 8px;
-    margin-right: 5px;
-    border-radius: 6px;
-    border: none;
-    font-size: 14px;
-  }
-
-  /* Hide map and floor buttons initially */
+  .door-icon { position: absolute; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; background: rgba(255,0,0,0.55); padding:0; line-height:0; font-size:0; }
+  .door-icon.opened { background: rgba(0,255,0,0.55); }
+  .door-icon:hover::after { content: attr(data-label); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10; min-width: max-content; text-align: center; }
+  #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
+  input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px; border-radius: 6px; border: none; font-size: 14px; }
   .hidden { display: none; }
+  .input-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .input-row input { flex: 1; max-width: 200px; }
+  .action-buttons { display: flex; gap: 8px; }
+  .color-selector-row { margin-top:10px; }
 </style>
 </head>
 <body>
@@ -102,178 +29,297 @@
 <div class="card">
   <h2>Raid Door Checklist</h2>
 
-  <div>
-    <button onclick="createRoom()">Create Raid</button>
+  <!-- User + Room Controls -->
+  <div class="input-row">
+    <input type="text" id="username" placeholder="Your name">
+    <input type="text" id="joinCode" placeholder="Room code">
+    <div class="action-buttons">
+      <button onclick="createRoom()">Create Raid</button>
+      <button onclick="joinRoomInput()">Join Room</button>
+    </div>
   </div>
-  <div style="margin-top:10px;">
-    <input type="text" id="joinCode" placeholder="Enter Room Code">
-    <button onclick="joinRoomInput()">Join Room</button>
-  </div>
-  <div id="room" style="margin-top:10px;"></div>
 
-  <!-- Floor buttons hidden initially -->
+  <!-- Colour selector -->
+  <div class="color-selector-row">
+    <label for="userColor">Choose your colour:</label>
+    <select id="userColor" style="height: 30px;">
+      <option value="green">Green</option>
+      <option value="blue">Blue</option>
+      <option value="yellow">Yellow</option>
+      <option value="purple">Purple</option>
+    </select>
+    <button id="advancedColorBtn">Advanced</button>
+    <input type="text" id="advancedColorInput" placeholder="#HEX" style="display:none; width:80px; margin-left:5px;">
+  </div>
+
+  <!-- Room info -->
+  <div id="room-info" style="margin-top:10px;">
+    Room: <span id="room-code"></span><br>
+    Time left: <span id="room-timer">--:--</span><br>
+    <button id="reset-btn" onclick="resetDoors()" style="margin-top:5px;">Reset Doors</button>
+    <button id="delete-btn" onclick="deleteRoom()" style="margin-top:5px; margin-left:5px;">Delete Room</button>
+    <button onclick="leaveRoom()" style="margin-top:5px; margin-left:5px;">Leave Room</button>
+  </div>
+
+  <!-- Users in room -->
+  <div id="users-list" style="margin-top:10px;"></div>
+
+  <!-- Floor buttons -->
   <div id="floor-buttons" class="hidden" style="margin-top:10px;">
     <button class="floor-btn active" onclick="switchFloor(1)">Floor 1</button>
     <button class="floor-btn" onclick="switchFloor(2)">Floor 2</button>
   </div>
 
-  <!-- Map hidden initially -->
+  <!-- Map -->
   <div class="map-container hidden">
     <img id="map-image" class="map-image" src="floor1.png" alt="Floor Map">
   </div>
 </div>
 
-<div id="notification"></div>
+<div id="notifications-container"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+let username = null;
+let roomCode = null;
+let currentFloor = 1;
+let doorsState = {};
+let doorsStateOld = {};
+let timerInterval = null;
+let roomExpiresAt = 0;
+let usersCache = {};
+
+const COLOR_MAP = { green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6" };
+let userColor = null;
+
+// --- Firebase config ---
 const firebaseConfig = {
-  apiKey: "AIzaSyBjCQ0bC17KHnG9ylIszBtaAnnDPLYqBV0",
+  apiKey: "",
   authDomain: "abi-checklist.firebaseapp.com",
   databaseURL: "https://abi-checklist-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "abi-checklist",
-  storageBucket: "abi-checklist.firebasestorage.app",
+  storageBucket: "abi-checklist.fuse.appspot.com",
   messagingSenderId: "430189439080",
   appId: "1:430189439080:web:aeab2c9a4e829ea16ab3dd"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let roomCode = null;
-let currentFloor = 1;
-let doorsState = {};
-let doorsStateOld = {};
-
 const DOORS = [
-  { id:"2f_general_office", label:"General Office Key", floor:2, top:"71.8834%", left:"30.855%" },
-  { id:"darkroom", label:"Darkroom Key", floor:1, top:"77.2353%", left:"74.697%" },
-  { id:"infirmary", label:"Infirmary Key", floor:1, top:"57.7608%", left:"35.7576%" },
-  { id:"2f_directors_office", label:"Director's Office Key", floor:2, top:"86.5%", left:"56%" },
-  { id:"post_production", label:"Post-Production Room Key", floor:1, top:"44.8936%", left:"71.9697%" },
-  { id:"editing_room", label:"Editing Room Key", floor:2, top:"5.17527%", left:"26.5909%" },
-  { id:"planning_room", label:"Planning Room Key", floor:1, top:"38.8046%", left:"43.2955%" }
+  { id:"2f_general_office", label:"2F General Office", floor:2, top:"71.8834%", left:"30.855%" },
+  { id:"darkroom", label:"Darkroom", floor:1, top:"77.2353%", left:"74.697%" },
+  { id:"infirmary", label:"Infirmary", floor:1, top:"57.7608%", left:"35.7576%" },
+  { id:"2f_directors_office", label:"2F Director's Office", floor:2, top:"86.5%", left:"56%" },
+  { id:"post_production", label:"Post-Production Room", floor:1, top:"44.8936%", left:"71.9697%" },
+  { id:"editing_room", label:"Editing Room", floor:2, top:"5.17527%", left:"26.5909%" },
+  { id:"planning_room", label:"Planning Room", floor:1, top:"38.8046%", left:"43.2955%" }
 ];
 
-function generateCode() { return Math.random().toString(36).substring(2,7).toUpperCase(); }
+// --- Assign colour functions ---
+function updateUserColor(colorKeyOrHex) {
+  if (!roomCode || !username) return;
+  const colorHex = COLOR_MAP[colorKeyOrHex] || colorKeyOrHex;
+  userColor = colorHex;
+  db.ref(`rooms/${roomCode}/users/${username}`).update({ color: userColor });
+}
 
+// Dropdown and advanced input
+const colorSelect = document.getElementById("userColor");
+const advancedBtn = document.getElementById("advancedColorBtn");
+const advancedInput = document.getElementById("advancedColorInput");
+
+colorSelect.addEventListener("change", () => {
+  updateUserColor(colorSelect.value);
+  advancedInput.style.display = "none";
+});
+
+advancedBtn.addEventListener("click", () => {
+  advancedInput.style.display = advancedInput.style.display==="none"?"inline-block":"none";
+});
+
+advancedInput.addEventListener("change", () => {
+  const val = advancedInput.value.trim();
+  if(/^#([0-9A-Fa-f]{6})$/.test(val)) updateUserColor(val);
+  else alert("Invalid hex code. Use format: #RRGGBB");
+});
+
+// --- Create/Join Room ---
 function createRoom() {
-  roomCode = generateCode();
+  if(roomCode) { alert("Leave the current room first."); return; }
+  username = document.getElementById("username").value.trim();
+  if(!username) { alert("Enter your name"); return; }
+  roomCode = Math.random().toString(36).substring(2,7).toUpperCase();
   const now = Date.now();
   const doors = {};
-  DOORS.forEach(d => doors[d.id] = false);
-
-  db.ref("rooms/" + roomCode).set({
-    createdAt: now,
-    expiresAt: now + 40*60*1000,
-    doors
-  }).then(() => joinRoom(roomCode));
+  DOORS.forEach(d=>doors[d.id]={opened:false,by:null});
+  db.ref("rooms/"+roomCode).set({ createdAt:now, expiresAt: now+4*60*60*1000, doors, users:{} }).then(()=>joinRoom(roomCode));
 }
 
 function joinRoomInput() {
+  if(roomCode) { alert("Leave the current room first."); return; }
+  username = document.getElementById("username").value.trim();
+  if(!username) { alert("Enter your name"); return; }
   const input = document.getElementById("joinCode").value.trim().toUpperCase();
   if(!input) { alert("Enter a room code"); return; }
   roomCode = input;
   joinRoom(roomCode);
 }
 
+// --- Join Room Logic ---
 function joinRoom(code) {
-  const roomRef = db.ref("rooms/" + code);
-  roomRef.once("value", snap => {
-    if(!snap.exists()) { alert("Room not found or expired"); return; }
+  const roomRef = db.ref("rooms/"+code);
+  roomRef.once("value").then(snap=>{
+    if(!snap.exists()){ alert("Room not found."); roomCode=null; return; }
     const room = snap.val();
-    if(Date.now() > room.expiresAt) { alert("Room expired"); return; }
+    if(Date.now() > room.expiresAt){ alert("Room expired"); roomCode=null; return; }
 
-    document.getElementById("room").innerText = "Room: " + code;
-
-    // Unhide map and floor buttons
+    document.getElementById("room-code").innerText=code;
     document.querySelector(".map-container").classList.remove("hidden");
     document.getElementById("floor-buttons").classList.remove("hidden");
+    currentFloor=1;
 
-    // Ensure we are on the default floor before rendering
-    currentFloor = 1;
-
-    // Fetch current door state immediately for first render
-    roomRef.child("doors").once("value").then(snap => {
-      doorsState = snap.val();
-      doorsStateOld = {...doorsState};
-
-      // Render doors for currentFloor
-      renderDoors();
+    // Add user to room with colour
+    const usersRef = db.ref(`rooms/${roomCode}/users`);
+    usersRef.once("value").then(snap=>{
+      const users = snap.val() || {};
+      if(!userColor) userColor = COLOR_MAP["green"]; // default green
+      db.ref(`rooms/${roomCode}/users/${username}`).set({ joinedAt:Date.now(), color:userColor });
+      db.ref(`rooms/${roomCode}/users/${username}`).onDisconnect().remove();
     });
 
-    // Listen for real-time updates
-    roomRef.child("doors").on("value", snap => {
-      const newDoors = snap.val();
-      for(const key in newDoors) {
-        if(!doorsStateOld[key] && newDoors[key]) {
-          showNotification(`${DOORS.find(d=>d.id===key).label} unlocked!`);
-        }
+    // Live user list
+    db.ref(`rooms/${roomCode}/users`).on("value", snap=>{
+      const users = snap.val() || {};
+      usersCache = users;
+      const list = Object.entries(users).map(([name,data])=>`<span style="color:${data.color}; font-weight:bold;">${name}</span>`).join(", ");
+      document.getElementById("users-list").innerHTML = "Users in room: "+(list||"None");
+    });
+
+    // Room timer
+    roomExpiresAt = room.expiresAt;
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(()=>{
+      const remaining = roomExpiresAt - Date.now();
+      if(remaining<=0){ document.getElementById("room-timer").innerText="Expired"; leaveRoom(); return; }
+      const totalSeconds = Math.floor(remaining/1000);
+      const hours = Math.floor(totalSeconds/3600);
+      const minutes = Math.floor((totalSeconds%3600)/60);
+      const seconds = totalSeconds%60;
+      document.getElementById("room-timer").innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+    },1000);
+
+    // Fetch doors
+    roomRef.child("doors").once("value").then(snap=>{ doorsState=snap.val(); doorsStateOld={...doorsState}; renderDoors(); });
+
+    // Door changes
+    roomRef.child("doors").on("child_changed", snap=>{
+      const doorId = snap.key, data = snap.val();
+      doorsState[doorId] = data;
+      renderDoors();
+      if(data.opened){
+        const user = data.by;
+        const color = usersCache?.[user]?.color || "#fff";
+        const door = DOORS.find(d=>d.id===doorId);
+        if(door) showNotification(`<span style="color:${color}; font-weight:bold;">${user}</span> opened ${door.label}`);
       }
-      doorsStateOld = {...doorsState};
-      doorsState = newDoors;
-      renderDoors();
     });
+
+    // Listen for reset/delete actions
+    roomRef.child("lastAction").on("value", snap=>{
+      if(!snap.exists()) return;
+      const action = snap.val();
+      const color = usersCache?.[action.by]?.color || "#fff";
+      if(action.type==="reset") showNotification(`<span style="color:${color}; font-weight:bold;">${action.by}</span> reset all doors`);
+      if(action.type==="delete") showNotification(`<span style="color:${color}; font-weight:bold;">${action.by}</span> deleted the room`);
+    });
+
   });
 }
 
-
-function renderDoors() {
+// --- Render doors ---
+function renderDoors(){
   const container = document.querySelector(".map-container");
-  if(!container || !roomCode) return;
-
-  // Remove old buttons
-  document.querySelectorAll(".door-icon").forEach(el => el.remove());
-
-  DOORS.forEach(d => {
-    const btn = document.createElement("button");
+  if(!container||!roomCode) return;
+  document.querySelectorAll(".door-icon").forEach(el=>el.remove());
+  DOORS.forEach(d=>{
+    const btn=document.createElement("button");
     btn.classList.add("door-icon");
-    if(doorsState[d.id]) btn.classList.add("opened");
-
-    btn.style.top = d.top;
-    btn.style.left = d.left;
-    btn.setAttribute("data-id", d.id); // use id
-    btn.setAttribute("data-label", d.label); // keep label for tooltip
-
-
-    // Show buttons only for current floor
-    btn.style.display = d.floor === currentFloor ? "block" : "none";
-
-    btn.onclick = () => {
-      if(!roomCode) return;
-      const newValue = !btn.classList.contains("opened");
-      btn.classList.toggle("opened", newValue);
-      db.ref(`rooms/${roomCode}/doors/${d.id}`).set(newValue);
-    };
-
+    if(doorsState[d.id]?.opened) btn.classList.add("opened");
+    btn.style.top=d.top; btn.style.left=d.left; btn.setAttribute("data-label",d.label);
+    btn.style.display=d.floor===currentFloor?"block":"none";
+    btn.onclick=()=>{ if(!roomCode) return; const newValue=!btn.classList.contains("opened"); btn.classList.toggle("opened",newValue); db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ opened:newValue, by:username }); };
     container.appendChild(btn);
   });
 }
 
-
-
-function showNotification(text) {
-  const notif = document.getElementById("notification");
-  notif.innerText = text;
-  notif.style.display = "block";
-  setTimeout(()=>{ notif.style.display = "none"; }, 3000);
-}
-
-function switchFloor(floor) {
-  currentFloor = floor;
-  document.getElementById("map-image").src = floor === 1 ? "floor1.png" : "floor2.png";
-  document.querySelectorAll(".floor-btn").forEach(btn => btn.classList.remove("active"));
+// --- Floor switch ---
+function switchFloor(floor){
+  currentFloor=floor;
+  document.getElementById("map-image").src=floor===1?"floor1.png":"floor2.png";
+  document.querySelectorAll(".floor-btn").forEach(btn=>btn.classList.remove("active"));
   document.querySelector(`.floor-btn:nth-child(${floor})`).classList.add("active");
-
-  // Show only buttons for the current floor
-  document.querySelectorAll(".door-icon").forEach(btn => {
-  const doorId = btn.getAttribute("data-id");
-  const door = DOORS.find(d => d.id === doorId);
-  btn.style.display = door && door.floor === floor ? "block" : "none";
-});
+  document.querySelectorAll(".door-icon").forEach(btn=>{ const door=DOORS.find(d=>d.label===btn.getAttribute("data-label")); btn.style.display=door&&door.floor===floor?"block":"none"; });
 }
 
+// --- Reset doors ---
+function resetDoors(){
+  if(!roomCode) return;
+  const resetState={};
+  DOORS.forEach(d=>resetState[d.id]={opened:false});
+  db.ref(`rooms/${roomCode}`).update({ doors:resetState, lastAction:{type:"reset",by:username,at:Date.now()} });
+}
+
+// --- Delete room ---
+function deleteRoom(){
+  if(!roomCode) return; if(!confirm("Are you sure?")) return;
+  const codeToDelete = roomCode;
+  db.ref(`rooms/${codeToDelete}/lastAction`).set({ type:"delete", by:username, at:Date.now() }).then(()=>{
+    setTimeout(()=>{
+      db.ref(`rooms/${codeToDelete}`).remove();
+      cleanupRoomState();
+    },300);
+  });
+}
+
+// --- Leave room ---
+function leaveRoom(){
+  if(!roomCode||!username) return;
+  db.ref(`rooms/${roomCode}/users/${username}`).remove();
+  cleanupRoomState();
+  showNotification("You left the room");
+}
+
+// --- Cleanup room state ---
+function cleanupRoomState(){
+  if(timerInterval) clearInterval(timerInterval);
+  document.querySelector(".map-container").classList.add("hidden");
+  document.getElementById("floor-buttons").classList.add("hidden");
+  document.querySelectorAll(".door-icon").forEach(btn=>btn.remove());
+  document.getElementById("room-code").innerText="";
+  document.getElementById("room-timer").innerText="--:--";
+  document.getElementById("users-list").innerHTML="";
+  setLobbyLocked(false);
+  roomCode=null; doorsState={}; doorsStateOld={}; usersCache={};
+}
+
+// --- Disable/Enable lobby inputs ---
+function setLobbyLocked(locked){
+  document.getElementById("joinCode").disabled=locked;
+  document.getElementById("username").disabled=locked;
+  document.querySelectorAll('button[onclick="createRoom()"], button[onclick="joinRoomInput()"]').forEach(btn=>btn.disabled=locked);
+}
+
+// --- Notifications ---
+function showNotification(html){
+  const container=document.getElementById("notifications-container");
+  const notif=document.createElement("div");
+  notif.innerHTML=html;
+  notif.style.background="#2d6cd2"; notif.style.color="white"; notif.style.padding="10px 15px"; notif.style.borderRadius="6px"; notif.style.fontSize="14px"; notif.style.opacity="0.9"; notif.style.marginTop="5px"; notif.style.transition="opacity 0.5s";
+  container.appendChild(notif);
+  setTimeout(()=>{ notif.style.opacity="0"; setTimeout(()=>container.removeChild(notif),500); },3000);
+}
 </script>
 </body>
 </html>
