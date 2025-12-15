@@ -5,135 +5,198 @@
 <title>Raid Door Checklist</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  * { box-sizing: border-box; }
-  body { background: #0f1115; color: #e6e6e6; font-family: Arial, sans-serif; padding: 20px; }
-  .card {
-    max-width: 700px;
-    background: #1b1f2a;
-    padding: 20px;
-    border-radius: 10px;
+* { box-sizing: border-box; }
+body { background: #0f1115; color: #e6e6e6; font-family: Arial, sans-serif; padding: 20px; }
+.card { max-width: 700px; background: #1b1f2a; padding: 20px; border-radius: 10px; position: absolute; left: 50%; transform: translateX(-50%); }
+button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-radius: 6px; background: #4095f4; color: white; font-size: 14px; cursor: pointer; }
+.floor-btn.active { background: #2d6cd2; }
+.map-container { position: relative; width: 100%; margin-top: 15px; }
+.map-image { width: 100%; display: block; }
 
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-  }
+.door-icon {
+  position: absolute;
+  width: 24px;               
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  background: rgba(255,0,0,0.55);
+  padding: 0;                
+  line-height: 28px;         
+  font-size: 0;              
+  display: inline-block;     
+  box-sizing: border-box; 
+}
+.door-icon.opened {
+  background: rgba(0,255,0,0.55);
+}
+
+.door-icon:hover::after { content: attr(data-label); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10; min-width: max-content; text-align: center; }
+#notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
+input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px; border-radius: 6px; border: none; font-size: 14px; }
+.hidden { display: none !important; }
+
+.input-row {
+  display: flex;
+  flex-wrap: wrap;       /* allow inputs/buttons to wrap if small screen */
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.input-row input {
+  flex: 0 0 150px;       /* fixed width so inputs don’t take all space */
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;       /* allow buttons to stack if needed */
+  gap: 8px;
+  flex-shrink: 0;        /* prevent shrinking */
+}
+
+.action-buttons button {
+  flex: 0 0 auto;        /* keep natural size */
+  min-width: 90px;       /* optional: ensures clickable area isn’t tiny */
+}
 
 
-  button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-radius: 6px; background: #4095f4; color: white; font-size: 14px; cursor: pointer; }
-  .floor-btn.active { background: #2d6cd2; }
-  .map-container { position: relative; width: 100%; margin-top: 15px; }
-  .map-image { width: 100%; display: block; }
-  .door-icon { position: absolute; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; background: rgba(255,0,0,0.55); padding:0; line-height:0; font-size:0; }
-  .door-icon.opened { background: rgba(0,255,0,0.55); }
-  .door-icon:hover::after { content: attr(data-label); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10; min-width: max-content; text-align: center; }
-  #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
-  input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px; border-radius: 6px; border: none; font-size: 14px; }
-  .hidden { display: none !important; }
-  .input-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
-  .input-row input { flex: 1; max-width: 200px; }
-  .action-buttons { display: flex; gap: 8px; }
-  .color-selector-row { margin-top:10px; }
-  .page-layout {
-    position: relative;
-    width: 100%;
-    min-height: 100vh;
-  }
-  .side-card {
-    width: 260px;
-    background: #141822;
-    border-radius: 10px;
-    padding: 15px;
+.action-buttons { display: flex; gap: 8px; }
+.color-selector-row { margin-top:10px; }
+.page-layout { position: relative; width: 100%; min-height: 100vh; }
+/* Side cards (Door & History) */
+.side-card {
+  width: 260px;
+  background: #141822;
+  border-radius: 10px;
+  padding: 15px;
+  position: absolute;
+  margin-top: 440px;
+}
 
-    position: absolute;
-    left: calc(50% - 700px / 2 - 280px);
-    margin-top: 440px;
-  }
-  .progress-wrap {
-    margin-bottom: 12px;
-  }
-  #door-progress {
-    width: 100%;
-    height: 10px;
-    background: #222;
-    border-radius: 6px;
-    overflow: hidden;
-    margin: 8px 0 12px;
-  }
+/* Door checklist - left side of main card */
+#door-card {
+  left: calc(50% - 700px / 2 - 280px); /* left of main card */
+}
 
-  #door-progress-bar {
-    height: 100%;
-    width: 0%;
-    background: #2ecc71; /* solid green */
-    transition: width 0.25s ease;
-  }
-  #door-progress-text {
-    font-size: 13px;
-    color: #bbb;
-  }
-  #door-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
 
+
+
+
+:root {
+  --history-max-height: 220px; 
+}
+
+/* Height tuning variables */
+:root {
+  --history-row-height: 22px;
+  --history-visible-rows: 10;
+  --history-header-height: 34px; /* h3 height + margin */
+}
+
+
+/* History card - right of main card */
+#history-card {
+  left: calc(50% + 700px / 2 + 20px); /* right side of main card */
+  width: 260px;
+  background: #141822;
+  border-radius: 10px;
+  padding: 15px;
+  position: absolute;
+  margin-top: 440px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* History list inside the card */
+#history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;                /* fills remaining card height */
+  overflow-y: auto;       /* allow scrolling for extra items */
+}
+
+#history-list li {
+  height: var(--history-row-height);
+  line-height: var(--history-row-height);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  padding: 2px 0;
+}
+
+
+
+
+.progress-wrap { margin-bottom: 12px; }
+#door-progress { width: 100%; height: 10px; background: #222; border-radius: 6px; overflow: hidden; margin: 8px 0 12px; }
+#door-progress-bar { height: 100%; width: 0%; background: #2ecc71; transition: width 0.25s ease; }
+#door-progress-text { font-size: 13px; color: #bbb; }
+#door-list { list-style: none; padding: 0; margin: 0; }
 </style>
 </head>
 <body>
 <div class="page-layout">
-<div class="card">
-  <h2>Raid Door Checklist</h2>
+  <div class="card">
+    <h2>Raid Door Checklist</h2>
 
-  <!-- User + Room Controls -->
-  <div id="input-row" class="input-row">
-    <input type="text" id="username" placeholder="Your name">
-    <input type="text" id="joinCode" placeholder="Room code">
-    <div class="action-buttons">
-      <button onclick="createRoom()">Create Raid</button>
-      <button onclick="joinRoomInput()">Join Room</button>
+    <!-- User + Room Controls -->
+    <div id="input-row" class="input-row">
+      <input type="text" id="username" placeholder="Your name">
+      <input type="text" id="joinCode" placeholder="Room code">
+      <div class="action-buttons">
+        <button onclick="createRoom()">Create Raid</button>
+        <button onclick="joinRoomInput()">Join Room</button>
+      </div>
     </div>
+
+    <!-- Colour selector -->
+    <div id="color-selector" class="color-selector-row">
+      <label for="userColor">Choose your colour:</label>
+      <select id="userColor" style="height:30px;">
+        <option value="green">Green</option>
+        <option value="blue">Blue</option>
+        <option value="yellow">Yellow</option>
+        <option value="purple">Purple</option>
+      </select>
+      <button id="advancedColorBtn">Advanced</button>
+      <input type="text" id="advancedColorInput" placeholder="#HEX" style="display:none; width:80px; margin-left:5px;">
+    </div>
+
+    <!-- Room info -->
+    <div id="room-info" class="hidden" style="margin-top:10px;">
+      Room: <span id="room-code"></span><br>
+      Time left: <span id="room-timer">--:--</span><br>
+      <button id="reset-btn" onclick="resetDoors()" style="margin-top:5px;">Reset Doors</button>
+      <button id="delete-btn" onclick="deleteRoom()" style="margin-top:5px; margin-left:5px;">Delete Room</button>
+      <button onclick="leaveRoom()" style="margin-top:5px; margin-left:5px;">Leave Room</button>
+    </div>
+
+    <!-- Users in room -->
+    <div id="users-list" class="hidden" style="margin-top:10px;"></div>
+
+
+ 
+    <!-- Floor buttons -->
+    <div id="floor-buttons" class="hidden" style="margin-top:10px;">
+      <button class="floor-btn active" onclick="switchFloor(1)">Floor 1</button>
+      <button class="floor-btn" onclick="switchFloor(2)">Floor 2</button>
+    </div>
+
+    <!-- Map -->
+    <div class="map-container hidden">
+      <img id="map-image" class="map-image" src="floor1.png" alt="Floor Map">
+    </div>
+
   </div>
 
-  <!-- Colour selector -->
-  <div id="color-selector" class="color-selector-row">
-    <label for="userColor">Choose your colour:</label>
-    <select id="userColor" style="height: 30px;">
-      <option value="green">Green</option>
-      <option value="blue">Blue</option>
-      <option value="yellow">Yellow</option>
-      <option value="purple">Purple</option>
-    </select>
-    <button id="advancedColorBtn">Advanced</button>
-    <input type="text" id="advancedColorInput" placeholder="#HEX" style="display:none; width:80px; margin-left:5px;">
-  </div>
-
-  <!-- Room info -->
-  <div id="room-info" class="hidden" style="margin-top:10px;">
-    Room: <span id="room-code"></span><br>
-    Time left: <span id="room-timer">--:--</span><br>
-    <button id="reset-btn" onclick="resetDoors()" style="margin-top:5px;">Reset Doors</button>
-    <button id="delete-btn" onclick="deleteRoom()" style="margin-top:5px; margin-left:5px;">Delete Room</button>
-    <button onclick="leaveRoom()" style="margin-top:5px; margin-left:5px;">Leave Room</button>
-  </div>
-
-  <!-- Users in room -->
-  <div id="users-list" class="hidden" style="margin-top:10px;"></div>
-
-  <!-- Floor buttons -->
-  <div id="floor-buttons" class="hidden" style="margin-top:10px;">
-    <button class="floor-btn active" onclick="switchFloor(1)">Floor 1</button>
-    <button class="floor-btn" onclick="switchFloor(2)">Floor 2</button>
-  </div>
-
-  <!-- Map -->
-  <div class="map-container hidden">
-    <img id="map-image" class="map-image" src="floor1.png" alt="Floor Map">
-  </div>
-
-</div>
-<div id="door-card" class="side-card hidden">
+  <div id="door-card" class="side-card hidden">
   <div class="progress-wrap">
     <div id="door-progress-text">0 / 0 opened</div>
-
     <div id="door-progress">
       <div id="door-progress-bar"></div>
     </div>
@@ -141,26 +204,28 @@
   <h3>Door Checklist</h3>
   <ul id="door-list"></ul>
 </div>
-<div id="notifications-container"></div>
+
+<div id="history-card" class="side-card hidden"
+     style="right: calc(50% - 700px / 2 - 280px); left: auto; margin-top: 440px;">
+  <h3>History</h3>
+  <ul id="history-list"></ul>
+</div>
+
+
+
+  <div id="notifications-container"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-let username = null;
-let roomCode = null;
-let currentFloor = 1;
-let doorsState = {};
-let doorsStateOld = {};
-let timerInterval = null;
-let roomExpiresAt = 0;
-let usersCache = {};
-let openedCount = 0;
+// --- GLOBAL STATE ---
+let username = null, userUID = null, roomCode = null, currentFloor = 1;
+let doorsState = {}, usersCache = {}, timerInterval = null, roomExpiresAt = 0, userColor = null;
+const COLOR_MAP = {green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6"};
 
-const COLOR_MAP = { green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6" };
-let userColor = null;
-
-
+// Firebase init
 const firebaseConfig = {
   apiKey: "AIzaSyBjCQ0bC17KHnG9ylIszBtaAnnDPLYqBV0",
   authDomain: "abi-checklist.firebaseapp.com",
@@ -173,6 +238,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// Anonymous auth
+firebase.auth().signInAnonymously().then(res=>{
+  userUID=res.user.uid;
+  console.log("Signed in anonymously UID", userUID);
+}).catch(err=>console.error("Anonymous sign-in failed", err));
+
+// Doors
 const DOORS = [
   { id:"2f_general_office", label:"General Office", floor:2, top:"71.8834%", left:"30.855%" },
   { id:"darkroom", label:"Darkroom", floor:1, top:"77.2353%", left:"74.697%" },
@@ -183,34 +255,27 @@ const DOORS = [
   { id:"planning_room", label:"Planning Room", floor:1, top:"38.8046%", left:"43.2955%" }
 ];
 
-
-function updateUserColor(colorKeyOrHex) {
-  if (!roomCode || !username) return;
-  const colorHex = COLOR_MAP[colorKeyOrHex] || colorKeyOrHex;
-  userColor = colorHex;
-  db.ref(`rooms/${roomCode}/users/${username}`).update({ color: userColor });
-}
-
-
+// --- Color selector ---
 const colorSelect = document.getElementById("userColor");
 const advancedBtn = document.getElementById("advancedColorBtn");
 const advancedInput = document.getElementById("advancedColorInput");
 
-colorSelect.addEventListener("change", () => {
-  updateUserColor(colorSelect.value);
-  advancedInput.style.display = "none";
-});
-
-advancedBtn.addEventListener("click", () => {
-  advancedInput.style.display = advancedInput.style.display==="none"?"inline-block":"none";
-});
-
-advancedInput.addEventListener("change", () => {
-  const val = advancedInput.value.trim();
+colorSelect.addEventListener("change",()=>updateUserColor(colorSelect.value));
+advancedBtn.addEventListener("click",()=>{advancedInput.style.display = advancedInput.style.display==="none"?"inline-block":"none";});
+advancedInput.addEventListener("change",()=>{
+  const val=advancedInput.value.trim();
   if(/^#([0-9A-Fa-f]{6})$/.test(val)) updateUserColor(val);
-  else alert("Invalid hex code. Use format: #RRGGBB");
+  else alert("Invalid hex code, use #RRGGBB");
 });
 
+function updateUserColor(colorKeyOrHex){
+  if(!roomCode || !userUID) return;
+  const colorHex = COLOR_MAP[colorKeyOrHex] || colorKeyOrHex;
+  userColor = colorHex;
+  db.ref(`rooms/${roomCode}/users/${userUID}`).update({ color:userColor });
+}
+
+// --- Room & Doors Functions ---
 
 function createRoom() {
   if(roomCode) { alert("Leave the current room first."); return; }
@@ -229,89 +294,70 @@ function joinRoomInput() {
   if(!username) { alert("Enter your name"); return; }
   const input = document.getElementById("joinCode").value.trim().toUpperCase();
   if(!input) { alert("Enter a room code"); return; }
-  roomCode = input;
-  joinRoom(roomCode);
+  joinRoom(input);
 }
 
 function joinRoom(code) {
   const roomRef = db.ref("rooms/" + code);
 
   roomRef.once("value").then(roomSnap => {
-    if (!roomSnap.exists()) {
-      alert("Room not found.");
-      return;
-    }
-
+    if (!roomSnap.exists()) { alert("Room not found."); return; }
     const room = roomSnap.val();
-    if (Date.now() > room.expiresAt) {
-      alert("Room expired");
-      return;
-    }
+    if (Date.now() > room.expiresAt) { alert("Room expired"); return; }
 
-    // ---- CHECK USERNAME UNIQUENESS FIRST ----
-    const userRef = db.ref(`rooms/${code}/users/${username}`);
-
-    userRef.once("value").then(userSnap => {
-      if (userSnap.exists()) {
+    // Step 1: Check for username conflicts
+    const usersRef = db.ref(`rooms/${code}/users`);
+    usersRef.once("value").then(snap => {
+      const users = snap.val() || {};
+      const nameTaken = Object.values(users).some(u => u.name === username);
+      if (nameTaken) {
         alert("That username is already taken in this room.");
         return;
       }
 
-      // ✅ Username is unique — NOW we officially join
-      roomCode = code;
-
+      // Step 2: Safe to join - set your user info
+      const userRef = db.ref(`rooms/${code}/users/${userUID}`);
       if (!userColor) userColor = COLOR_MAP.green;
-
       userRef.set({
-        joinedAt: Date.now(),
-        color: userColor
+        name: username,
+        color: userColor,
+        joinedAt: Date.now()
       });
-
       userRef.onDisconnect().remove();
 
-      // ---- UI CHANGES (NOW SAFE) ----
+      roomCode = code;
+
+      // Step 3: Setup UI
       document.getElementById("room-code").innerText = code;
       document.getElementById("room-info").classList.remove("hidden");
       document.getElementById("users-list").classList.remove("hidden");
       document.querySelector(".map-container").classList.remove("hidden");
       document.getElementById("floor-buttons").classList.remove("hidden");
       document.getElementById("door-card").classList.remove("hidden");
-
+      document.getElementById("history-card").classList.remove("hidden");
       document.getElementById("input-row").classList.add("hidden");
-      
       currentFloor = 1;
 
-      // ---- USERS LIST ----
+      // Step 4: Listen for users in the room
       let previousUsers = {};
-
-      db.ref(`rooms/${roomCode}/users`).on("value", snap => {
+      usersRef.on("value", snap => {
         const users = snap.val() || {};
-
-        // Detect users who left (excluding yourself)
-        Object.keys(previousUsers).forEach(name => {
-          if (!users[name] && name !== username) {
-            showNotification(`<b>${name}</b> left the room`);
+        Object.keys(previousUsers).forEach(uid => {
+          if (!users[uid]) {
+            const nameLeft = previousUsers[uid].name || "Unknown";
+            showNotification(`<b>${nameLeft}</b> left the room`);
           }
         });
-
         previousUsers = { ...users };
         usersCache = users;
 
-        const list = Object.entries(users)
-          .map(([name, data]) =>
-            `<span style="color:${data.color}; font-weight:bold;">${name}</span>`
-          )
-          .join(", ");
+        const list = Object.values(users).map(u => `<span style="color:${u.color}; font-weight:bold;">${u.name}</span>`).join(", ");
+        document.getElementById("users-list").innerHTML = "Users in room: " + (list || "None");
+      });
 
-        document.getElementById("users-list").innerHTML =
-          "Users in room: " + (list || "None");
-        });
-
-
-      // ---- ROOM TIMER ----
+      // Step 5: Setup room timer
       roomExpiresAt = room.expiresAt;
       if (timerInterval) clearInterval(timerInterval);
-
       timerInterval = setInterval(() => {
         const remaining = roomExpiresAt - Date.now();
         if (remaining <= 0) {
@@ -319,225 +365,269 @@ function joinRoom(code) {
           leaveRoom();
           return;
         }
-
-        const totalSeconds = Math.floor(remaining / 1000);
-        const h = Math.floor(totalSeconds / 3600);
-        const m = Math.floor((totalSeconds % 3600) / 60);
-        const s = totalSeconds % 60;
-
+        const totalSeconds = Math.floor(remaining / 1000),
+              h = Math.floor(totalSeconds / 3600),
+              m = Math.floor((totalSeconds % 3600) / 60),
+              s = totalSeconds % 60;
         document.getElementById("room-timer").innerText =
-          `${h.toString().padStart(2, "0")}:` +
-          `${m.toString().padStart(2, "0")}:` +
-          `${s.toString().padStart(2, "0")}`;
+          `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
       }, 1000);
 
-      // ---- INITIAL DOORS ----
+      // Step 6: Listen for doors
       roomRef.child("doors").once("value").then(snap => {
         doorsState = snap.val() || {};
         renderDoors();
         renderDoorList();
       });
-
-      // ---- DOOR CHANGES ----
       roomRef.child("doors").on("child_changed", snap => {
-        const doorId = snap.key;
-        const data = snap.val();
+        const doorId = snap.key, data = snap.val();
         doorsState[doorId] = data;
         renderDoors();
         renderDoorList();
 
         if (data.opened) {
-          const user = data.by;
-          const color = usersCache?.[user]?.color || "#fff";
+          const uid = data.by;
+          const userObj = usersCache?.[uid];
+          const name = userObj?.name || "Unknown";
+          const color = userObj?.color || "#fff";
           const door = DOORS.find(d => d.id === doorId);
-          if (door) {
-            showNotification(
-              `<span style="color:${color}; font-weight:bold;">${user}</span> opened ${door.label}`
-            );
-          }
+          if (door) showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> opened ${door.label}`);
         }
       });
 
-      // ---- ROOM DELETED ----
-      roomRef.on("value", snap => {
-        if (!snap.exists()) {
-          cleanupRoomState();
-          return;
-        }
+      // Step 7: Listen for room deletion
+     roomRef.on("value", snap => {
+  const data = snap.val();
+  if (!snap.exists() || data?.deleting) {
+    const user = usersCache?.[data?.deletedBy];
+    const name = user?.name || "Someone";
+    const color = user?.color || "#fff";
 
-        const data = snap.val();
-        if (data?.deleting) {
-          const by = data.deletedBy || "Unknown";
-          showNotification(`Room was deleted by <b>${by}</b>`);
-        }
-      });
-    });
+    showNotification(
+      `<span style="color:${color}; font-weight:bold;">${name}</span> deleted the room`
+    );
+    cleanupRoomState();
+  }
+});
+
+
+      // Step 8: Listen for last action (resets)
+     roomRef.child("lastAction").on("value", snap => {
+  const action = snap.val();
+  if (!action || action.type !== "reset") return;
+
+  const user = usersCache?.[action.by];
+  const name = user?.name || "Someone";
+  const color = user?.color || "#fff";
+
+  showNotification(
+    `<span style="color:${color}; font-weight:bold;">${name}</span> reset the doors`
+  );
+});
+
+const historyRef = db.ref(`rooms/${code}/history`);
+historyRef.limitToLast(10).on("value", snap => {
+  const list = document.getElementById("history-list");
+  list.innerHTML = "";
+
+  const entries = [];
+  snap.forEach(childSnap => {
+    entries.push(childSnap.val());
   });
+
+  // entries are already in correct order from Firebase
+  entries.forEach(e => {
+    const user = usersCache?.[e.by];
+    const name = user?.name || "Unknown";
+    const color = user?.color || "#fff";
+
+    const li = document.createElement("li");
+    li.style.margin = "4px 0";
+    li.innerHTML = `<span style="color:${color}; font-weight:bold;">${name}</span> ${e.text}`;
+    list.appendChild(li);
+  });
+
+  // Ensure newest entry is visible
+  list.scrollTop = list.scrollHeight;
+});
+
+
+    }); // usersRef.once
+  }); // roomRef.once
 }
 
 
-
-function renderDoors(){
+// --- Render Doors & Door List ---
+function renderDoors() {
   const container = document.querySelector(".map-container");
-  if(!container||!roomCode) return;
-  document.querySelectorAll(".door-icon").forEach(el=>el.remove());
-  DOORS.forEach(d=>{
-    const btn=document.createElement("button");
+  if (!container || !roomCode) return;
+
+  // Remove old door buttons
+  document.querySelectorAll(".door-icon").forEach(el => el.remove());
+
+  DOORS.forEach(d => {
+    const btn = document.createElement("button");
     btn.classList.add("door-icon");
-    if(doorsState[d.id]?.opened) btn.classList.add("opened");
-    btn.style.top=d.top; btn.style.left=d.left; btn.setAttribute("data-label",d.label);
-    btn.style.display=d.floor===currentFloor?"block":"none";
-    btn.onclick=()=>{ if(!roomCode) return; const newValue=!btn.classList.contains("opened"); btn.classList.toggle("opened",newValue); db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ opened:newValue, by:username }); };
+
+    const doorState = doorsState[d.id] || { opened: false };
+    if (doorState.opened) btn.classList.add("opened");
+
+    btn.style.top = d.top;
+    btn.style.left = d.left;
+    btn.setAttribute("data-label", d.label);
+    btn.style.display = d.floor === currentFloor ? "block" : "none";
+
+    // Click handler for map buttons
+    btn.onclick = () => {
+      if (!roomCode) return;
+      const newOpened = !btn.classList.contains("opened");
+      btn.classList.toggle("opened", newOpened);
+     db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ opened: newOpened, by: userUID });
+
+logHistory({
+  type: "door",
+  by: userUID,
+  text: `${newOpened ? "opened" : "closed"} ${d.label}`
+});
+
+    };
+
     container.appendChild(btn);
   });
 }
 
 
+function renderDoorList() {
+  if (!roomCode) return;
+  const list = document.getElementById("door-list");
+  const text = document.getElementById("door-progress-text");
+  const bar = document.getElementById("door-progress-bar");
+  list.innerHTML = "";
+  let openedCount = 0;
+  const sortedDoors = [...DOORS].sort((a,b)=>b.floor-a.floor);
+  sortedDoors.forEach(door => {
+    const state = doorsState[door.id]; if(!state) return;
+    if(state.opened) openedCount++;
+    const li = document.createElement("li");
+    li.style.cursor="pointer"; li.style.margin="6px 0"; li.style.padding="6px 10px"; li.style.borderRadius="6px";
+    li.style.background = state.opened ? "rgba(46,204,113,0.25)" : "rgba(231,76,60,0.25)";
+    li.innerText = `${door.label} (${door.floor===2?"2F":"1F"})`;
+    li.onclick = () => { 
+   const newState = !state.opened;
+db.ref(`rooms/${roomCode}/doors/${door.id}`).set({ opened: newState, by: userUID });
+
+logHistory({
+  type: "door",
+  by: userUID,
+  text: `${newState ? "opened" : "closed"} ${door.label}`
+});
+
+};
+    list.appendChild(li);
+  });
+  const total = DOORS.length;
+  const percent = total ? Math.round((openedCount/total)*100) : 0;
+  text.innerText = `${openedCount} / ${total} opened`;
+  bar.style.width = percent+"%";
+}
+
+// --- Floor Switch ---
 function switchFloor(floor){
   currentFloor=floor;
   document.getElementById("map-image").src=floor===1?"floor1.png":"floor2.png";
   document.querySelectorAll(".floor-btn").forEach(btn=>btn.classList.remove("active"));
   document.querySelector(`.floor-btn:nth-child(${floor})`).classList.add("active");
-  document.querySelectorAll(".door-icon").forEach(btn=>{ const door=DOORS.find(d=>d.label===btn.getAttribute("data-label")); btn.style.display=door&&door.floor===floor?"block":"none"; });
+  document.querySelectorAll(".door-icon").forEach(btn=>{
+    const door = DOORS.find(d=>d.label===btn.getAttribute("data-label"));
+    btn.style.display = door&&door.floor===floor?"block":"none";
+  });
 }
 
-
+// --- Reset / Delete / Leave ---
 function resetDoors(){
-  if (!roomCode || !username) return;
+  if(!roomCode || !username) return;
+  const resetState = {}; DOORS.forEach(d=>resetState[d.id]={opened:false,by:null});
+ db.ref(`rooms/${roomCode}`).update({
+  doors: resetState,
+  lastAction: { type:"reset", by:userUID, at:Date.now() }
+});
 
-  const resetState = {};
-  DOORS.forEach(d => {
-    resetState[d.id] = {
-      opened: false,
-      by: null
-    };
-  });
+logHistory({
+  type: "reset",
+  by: userUID,
+  text: "reset all doors"
+});
 
-  db.ref(`rooms/${roomCode}`).update({
-    doors: resetState,
-    lastAction: {
-      type: "reset",
-      by: username,
-      at: Date.now()
-    }
-  });
+
 }
 
-
-function deleteRoom() {
-  if (!roomCode) return;
-  if (!confirm("Are you sure you want to delete the room?")) return;
-
-  const codeToDelete = roomCode;
-  const roomRef = db.ref(`rooms/${codeToDelete}`);
-
-  // Mark room as deleting + who did it
+function deleteRoom(){
+  if(!roomCode || !confirm("Are you sure you want to delete the room?")) return;
+  const roomRef = db.ref(`rooms/${roomCode}`);
   roomRef.update({
-    deleting: true,
-    deletedBy: username,
-    deletedAt: Date.now()
-  });
+  deleting: true,
+  deletedBy: userUID,
+  deletedAt: Date.now()
+});
 
-  // Give clients time to read, then delete
-  setTimeout(() => {
-    roomRef.remove();
-  }, 1200);
+logHistory({
+  type: "delete",
+  by: userUID,
+  text: "deleted the room"
+});
+
+
+  setTimeout(()=>roomRef.remove(), 1200);
 }
-
 
 function leaveRoom(){
   if(!roomCode || !username) return;
-
-  const code = roomCode;
-
-  db.ref(`rooms/${roomCode}/users/${username}`).remove();
+  db.ref(`rooms/${roomCode}/users/${userUID}`).remove();
   cleanupRoomState();
-
-  showNotification(`You left room <b>(${code})</b>`);
+  showNotification(`You left room <b>(${roomCode})</b>`);
 }
 
-
+// --- Cleanup ---
 function cleanupRoomState(){
   if(timerInterval) clearInterval(timerInterval);
-  if (roomCode) {
-    db.ref(`rooms/${roomCode}`).off();          
-    db.ref(`rooms/${roomCode}/doors`).off();  
-    db.ref(`rooms/${roomCode}/users`).off(); 
-  } 
+  if(roomCode){
+    db.ref(`rooms/${roomCode}`).off();
+    db.ref(`rooms/${roomCode}/doors`).off();
+    db.ref(`rooms/${roomCode}/users`).off();
+  }
   document.querySelector(".map-container").classList.add("hidden");
   document.getElementById("floor-buttons").classList.add("hidden");
   document.getElementById("room-info").classList.add("hidden");
   document.getElementById("users-list").classList.add("hidden");
   document.getElementById("door-card").classList.add("hidden");
+  document.getElementById("history-card").classList.add("hidden");
+  document.getElementById("history-list").innerHTML = "";
   document.getElementById("input-row").classList.remove("hidden");
-  
-
-
   document.querySelectorAll(".door-icon").forEach(btn=>btn.remove());
   document.getElementById("room-code").innerText="";
   document.getElementById("room-timer").innerText="--:--";
   document.getElementById("users-list").innerHTML="";
+db.ref(`rooms/${roomCode}/history`).off();
+document.getElementById("history-list").innerHTML = "";
+document.getElementById("history-box").classList.add("hidden");
+
   setLobbyLocked(false);
-
-  roomCode=null;
-  doorsState={};
-  doorsStateOld={};
-  usersCache={};
+  roomCode=null; doorsState={}; usersCache={};
 }
 
-function renderDoorList() {
-  if (!roomCode) return;
-
-  const list = document.getElementById("door-list");
-  const text = document.getElementById("door-progress-text");
-  const bar = document.getElementById("door-progress-bar");
-
-  list.innerHTML = "";
-
-  let openedCount = 0;
-
-  // 🔹 Sort: 2F first, then 1F
-  const sortedDoors = [...DOORS].sort((a, b) => b.floor - a.floor);
-
-  sortedDoors.forEach(door => {
-    const state = doorsState[door.id];
-    if (!state) return;
-
-    if (state.opened) openedCount++;
-
-    const li = document.createElement("li");
-    li.style.cursor = "pointer";
-    li.style.margin = "6px 0";
-    li.style.padding = "6px 10px";
-    li.style.borderRadius = "6px";
-    li.style.background = state.opened
-      ? "rgba(46, 204, 113, 0.25)"
-      : "rgba(231, 76, 60, 0.25)";
-
-    li.innerText = `${door.label} (${door.floor === 2 ? "2F" : "1F"})`;
-
-    li.onclick = () => {
-      db.ref(`rooms/${roomCode}/doors/${door.id}`).set({
-        opened: !state.opened,
-        by: username
-      });
-    };
-
-    list.appendChild(li);
-  });
-
-  const total = DOORS.length;
-  const percent = total ? Math.round((openedCount / total) * 100) : 0;
-
-  text.innerText = `${openedCount} / ${total} opened`;
-  bar.style.width = percent + "%";
-}
-
-
+// --- UI Helpers ---
 function setLobbyLocked(locked){
   document.getElementById("joinCode").disabled=locked;
   document.getElementById("username").disabled=locked;
   document.querySelectorAll('button[onclick="createRoom()"], button[onclick="joinRoomInput()"]').forEach(btn=>btn.disabled=locked);
+}
+
+function logHistory(entry){
+  if(!roomCode) return;
+  db.ref(`rooms/${roomCode}/history`).push({
+    ...entry,
+    at: Date.now()
+  });
 }
 
 
