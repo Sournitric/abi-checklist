@@ -95,39 +95,38 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 }
 
 
-/* History card - right of main card */
+
+
 #history-card {
-  left: calc(50% + 700px / 2 + 20px); /* right side of main card */
-  width: 260px;
+  position: absolute;
+  top: 20px;                          /* align with the top of the main card */
+  left: calc(50% + 360px);            /* right of main card */
+  min-width: 260px;                    /* minimum width even if empty */
+  max-width: 600px;                    /* optional max width */
   background: #141822;
   border-radius: 10px;
   padding: 15px;
-  position: absolute;
-  margin-top: 440px;
-
-  display: flex;
-  flex-direction: column;
+  overflow-x: auto;                    /* horizontal scroll if needed */
+  white-space: nowrap;                 /* keep entries on one line */
+  z-index: 50;                         /* appear above background */
 }
 
-/* History list inside the card */
 #history-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  flex: 1;                /* fills remaining card height */
-  overflow-y: auto;       /* allow scrolling for extra items */
 }
 
 #history-list li {
-  height: var(--history-row-height);
   line-height: var(--history-row-height);
   font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
-  padding: 2px 0;
+  white-space: nowrap;              
+  overflow: visible;
+  text-overflow: clip;
+  margin: 4px 0;
 }
+
+
 
 
 
