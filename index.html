@@ -15,155 +15,101 @@ button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-ra
 
 .door-icon {
   position: absolute;
-  width: 24px;               
+  width: 24px;
   height: 24px;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid white;
   background: rgba(255,0,0,0.55);
-  padding: 0;                
-  line-height: 28px;         
-  font-size: 0;              
-  display: inline-block;     
-  box-sizing: border-box; 
+  padding: 0;
+  line-height: 28px;
+  font-size: 0;
+  display: inline-block;
+  box-sizing: border-box;
 }
-.door-icon.opened {
-  background: rgba(0,255,0,0.55);
+.door-icon.opened { background: rgba(0,255,0,0.55); }
+.door-icon:hover::after {
+  content: attr(data-label);
+  position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+  background: #222; color: white; padding: 4px 8px; font-size: 12px;
+  border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10;
+  min-width: max-content; text-align: center; overflow-wrap: break-word;
 }
 
-.door-icon:hover::after { content: attr(data-label); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: #222; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10; min-width: max-content; text-align: center; overflow-wrap: break-word;}
 #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
 input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px; border-radius: 6px; border: none; font-size: 14px; }
 .hidden { display: none !important; }
+.input-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.input-row input { flex: 0 0 150px; }
+.action-buttons { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+.action-buttons button { flex: 0 0 auto; min-width: 90px; }
 
-.input-row {
-  display: flex;
-  flex-wrap: wrap;       /* allow inputs/buttons to wrap if small screen */
-  gap: 8px;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.input-row input {
-  flex: 0 0 150px;       /* fixed width so inputs don’t take all space */
-}
-
-.action-buttons {
-  display: flex;
-  flex-wrap: wrap;       /* allow buttons to stack if needed */
-  gap: 8px;
-  flex-shrink: 0;        /* prevent shrinking */
-}
-
-.action-buttons button {
-  flex: 0 0 auto;        /* keep natural size */
-  min-width: 90px;       /* optional: ensures clickable area isn’t tiny */
-}
-
-
-.action-buttons { display: flex; gap: 8px; }
 .color-selector-row { margin-top:10px; }
 .page-layout { position: relative; width: 100%; min-height: 100vh; }
 
-.side-card {
-  width: 260px;
-  background: #141822;
-  border-radius: 10px;
-  padding: 15px;
+.side-card { 
+  width: 260px; 
+  background: #141822; 
+  border-radius: 10px; 
+  padding: 15px; 
   position: absolute;
-  margin-top: 440px;
 }
 
-:root {
-  --history-row-height: 22px;
-  --history-visible-rows: 10;
-  --history-header-height: 34px; 
-  --history-max-height: 220px;
+.door-opened-by { display: block; font-size: 11px; opacity: 0.75; margin-top: 2px; }
+
+#door-card { 
+  top: calc(50% - 200px);
+  left: calc(50% - 650px); 
 }
 
-.door-opened-by {
-  display: block;
-  font-size: 11px;
-  opacity: 0.75;
-  margin-top: 2px;
+
+#history-list { 
+  list-style: none; 
+  padding: 0; 
+  margin: 0; 
 }
 
-#door-card {
-  left: calc(50% - 650px);
-}
 
-#history-card {
-  position: absolute;
-  top: 20px;
-
-  right: calc(50% - 650px);
+#history-card { 
+  top: calc(50% - 200px); 
+  right: calc(50% - 650px); 
   
-
-  display: inline-block;
-  width: max-content;
-  min-width: 260px;
+  display: inline-block; 
+  width: 260px;           
+  min-width: 260px; 
   max-width: 90vw;
   
-  background: #141822;
-  border-radius: 10px;
-  padding: 15px;
+  background: #141822; 
+  border-radius: 10px; 
+  padding: 15px; 
+  
+  max-height: 400px;
+  overflow-y: hidden;
 
   white-space: normal;
-  overflow: break-word;
-  z-index: 50;
-  transition: width 0.25s ease;
+  overflow-wrap: break-word;
+  z-index: 50; 
 }
 
-#history-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+
+#history-list li { 
+  font-size: 13px; 
+  text-align: left; 
+  margin: 0 0 6px; 
+  white-space: normal;    
+  word-break: break-word;  
 }
 
-#history-list li {
-  line-height: var(--history-row-height);
-  font-size: 13px;
-  text-align: left;
-  margin: 0 0 6px;
+#history-card h3 { text-align: left; margin-top: 0; margin-bottom: 10px; flex-shrink: 0; }
 
-  white-space: nowrap;   /* keep entries one line */
-}
-#history-card h3 {
-  text-align: left;
-  margin-top: 0;
-  margin-bottom: 10px;
-}
 
-#door-list li {
-  transition: background 0.25s ease, transform 0.15s ease;
-}
+#door-list li { transition: background 0.25s ease; }
+#door-list li.door-opened { background: rgba(46,204,113,0.25); }
+#door-list li.door-closed { background: rgba(231,76,60,0.25); }
 
-#door-list li.door-opened {
-  background: rgba(46,204,113,0.25);
-}
-
-#door-list li.door-closed {
-  background: rgba(231,76,60,0.25);
-}
-
-#door-list li.animate {
-  transform: scale(1.03);
-}
-
-.door-title {
-  font-weight: bold;
-}
-
-.door-meta {
-  font-size: 11px;
-  opacity: 0.8;
-  margin-top: 2px;
-}
-
-.door-time {
-  margin-left: 6px;
-  color: #aaa;
-}
+.door-title { font-weight: bold; }
+.door-meta { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.door-time { margin-left: 6px; color: #aaa; }
 
 .progress-wrap { margin-bottom: 12px; }
 #door-progress { width: 100%; height: 10px; background: #222; border-radius: 6px; overflow: hidden; margin: 8px 0 12px; }
@@ -176,18 +122,15 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 <div class="page-layout">
   <div class="card">
     <h2>Raid Door Checklist</h2>
-
-    
     <div id="input-row" class="input-row">
       <input type="text" id="username" placeholder="Your name" maxlength="20">
       <input type="text" id="joinCode" placeholder="Room code">
       <div class="action-buttons">
-        <button onclick="createRoom()">Create Raid</button>
-        <button onclick="joinRoomInput()">Join Room</button>
+        <button id="createBtn">Create Raid</button>
+        <button id="joinBtn">Join Room</button>
       </div>
     </div>
 
-    
     <div id="color-selector" class="color-selector-row">
       <label for="userColor">Choose your colour:</label>
       <select id="userColor" style="height:30px;">
@@ -200,50 +143,41 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
       <input type="text" id="advancedColorInput" placeholder="#HEX" style="display:none; width:80px; margin-left:5px;">
     </div>
 
-    
     <div id="room-info" class="hidden" style="margin-top:10px;">
       Room: <span id="room-code"></span><br>
       Time left: <span id="room-timer">--:--</span><br>
-      <button id="reset-btn" onclick="resetDoors()" style="margin-top:5px;">Reset Doors</button>
-      <button id="delete-btn" onclick="deleteRoom()" style="margin-top:5px; margin-left:5px;">Delete Room</button>
-      <button onclick="leaveRoom()" style="margin-top:5px; margin-left:5px;">Leave Room</button>
+      <button id="reset-btn" style="margin-top:5px;">Reset Doors</button>
+      <button id="delete-btn" style="margin-top:5px; margin-left:5px;">Delete Room</button>
+      <button id="leave-btn" style="margin-top:5px; margin-left:5px;">Leave Room</button>
     </div>
 
-    
     <div id="users-list" class="hidden" style="margin-top:10px;"></div>
 
-
- 
-    
     <div id="floor-buttons" class="hidden" style="margin-top:10px;">
-      <button class="floor-btn active" onclick="switchFloor(1)">Floor 1</button>
-      <button class="floor-btn" onclick="switchFloor(2)">Floor 2</button>
+      <button class="floor-btn active" data-floor="1">Floor 1</button>
+      <button class="floor-btn" data-floor="2">Floor 2</button>
     </div>
 
-    
     <div class="map-container hidden">
       <img id="map-image" class="map-image" src="floor1.png" alt="Floor Map">
     </div>
-
   </div>
 
   <div id="door-card" class="side-card hidden">
-  <div class="progress-wrap">
-    <div id="door-progress-text">0 / 0 opened</div>
-    <div id="door-progress">
-      <div id="door-progress-bar"></div>
+    <div class="progress-wrap">
+      <div id="door-progress-text">0 / 0 opened</div>
+      <div id="door-progress">
+        <div id="door-progress-bar"></div>
+      </div>
     </div>
+    <h3>Door Checklist</h3>
+    <ul id="door-list"></ul>
   </div>
-  <h3>Door Checklist</h3>
-  <ul id="door-list"></ul>
-</div>
 
-<div id="history-card" class="side-card hidden">
-  <h3>History</h3>
-  <ul id="history-list"></ul>
-</div>
-
-
+  <div id="history-card" class="side-card hidden">
+    <h3>History</h3>
+    <ul id="history-list"></ul>
+  </div>
 
   <div id="notifications-container"></div>
 
@@ -252,13 +186,18 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+let username=null, userUID=null, roomCode=null, currentFloor=1, doorsState={}, usersCache={}, timerInterval=null, roomExpiresAt=0, userColor=null;
+const COLOR_MAP={green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6"};
+const DOORS=[
+  { id:"2f_general_office", label:"General Office", floor:2, top:"71.8834%", left:"30.855%" },
+  { id:"darkroom", label:"Darkroom", floor:1, top:"77.2353%", left:"74.697%" },
+  { id:"infirmary", label:"Infirmary", floor:1, top:"57.7608%", left:"35.7576%" },
+  { id:"2f_directors_office", label:"Director's Office", floor:2, top:"86.5%", left:"56%" },
+  { id:"post_production", label:"Post-Production Room", floor:1, top:"44.8936%", left:"71.9697%" },
+  { id:"editing_room", label:"Editing Room", floor:2, top:"5.17527%", left:"26.5909%" },
+  { id:"planning_room", label:"Planning Room", floor:1, top:"38.8046%", left:"43.2955%" }
+];
 
-let username = null, userUID = null, roomCode = null, currentFloor = 1;
-let doorsState = {}, usersCache = {}, timerInterval = null, roomExpiresAt = 0, userColor = null;
-const COLOR_MAP = {green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6"};
-const MAX_HISTORY = 15;
-
-// Firebase init
 const firebaseConfig = {
   apiKey: "AIzaSyBjCQ0bC17KHnG9ylIszBtaAnnDPLYqBV0",
   authDomain: "abi-checklist.firebaseapp.com",
@@ -271,103 +210,106 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Anonymous auth
-firebase.auth().signInAnonymously().then(res=>{
-  userUID=res.user.uid;
-  console.log("Signed in anonymously UID", userUID);
-}).catch(err=>console.error("Anonymous sign-in failed", err));
+
+setLobbyLocked(true);
+firebase.auth().signInAnonymously()
+  .then(res=>{ userUID=res.user.uid; console.log("UID", userUID); setLobbyLocked(false); })
+  .catch(err=>{ console.error(err); alert("Firebase auth failed"); });
 
 
-const DOORS = [
-  { id:"2f_general_office", label:"General Office", floor:2, top:"71.8834%", left:"30.855%" },
-  { id:"darkroom", label:"Darkroom", floor:1, top:"77.2353%", left:"74.697%" },
-  { id:"infirmary", label:"Infirmary", floor:1, top:"57.7608%", left:"35.7576%" },
-  { id:"2f_directors_office", label:"Director's Office", floor:2, top:"86.5%", left:"56%" },
-  { id:"post_production", label:"Post-Production Room", floor:1, top:"44.8936%", left:"71.9697%" },
-  { id:"editing_room", label:"Editing Room", floor:2, top:"5.17527%", left:"26.5909%" },
-  { id:"planning_room", label:"Planning Room", floor:1, top:"38.8046%", left:"43.2955%" }
-];
-
-
-const colorSelect = document.getElementById("userColor");
-const advancedBtn = document.getElementById("advancedColorBtn");
-const advancedInput = document.getElementById("advancedColorInput");
+const colorSelect=document.getElementById("userColor");
+const advancedBtn=document.getElementById("advancedColorBtn");
+const advancedInput=document.getElementById("advancedColorInput");
 
 colorSelect.addEventListener("change",()=>updateUserColor(colorSelect.value));
 advancedBtn.addEventListener("click",()=>{advancedInput.style.display = advancedInput.style.display==="none"?"inline-block":"none";});
-advancedInput.addEventListener("change",()=>{
-  const val=advancedInput.value.trim();
-  if(/^#([0-9A-Fa-f]{6})$/.test(val)) updateUserColor(val);
-  else alert("Invalid hex code, use #RRGGBB");
-});
+advancedInput.addEventListener("change",()=>{const val=advancedInput.value.trim(); if(/^#([0-9A-Fa-f]{6})$/.test(val)) updateUserColor(val); else alert("Invalid hex code");});
 
 function updateUserColor(colorKeyOrHex){
   if(!roomCode || !userUID) return;
-  const colorHex = COLOR_MAP[colorKeyOrHex] || colorKeyOrHex;
-  userColor = colorHex;
+  userColor = COLOR_MAP[colorKeyOrHex] || colorKeyOrHex;
   db.ref(`rooms/${roomCode}/users/${userUID}`).update({ color:userColor });
 }
 
 
+document.getElementById("createBtn").addEventListener("click", createRoom);
+document.getElementById("joinBtn").addEventListener("click", joinRoomInput);
+document.querySelectorAll(".floor-btn").forEach(btn=>btn.addEventListener("click",()=>switchFloor(parseInt(btn.dataset.floor))));
+
+function setLobbyLocked(locked){
+  document.getElementById("joinCode").disabled=locked;
+  document.getElementById("username").disabled=locked;
+  document.querySelectorAll("#createBtn, #joinBtn").forEach(btn=>btn.disabled=locked);
+}
 
 function createRoom() {
-  if(roomCode) { alert("Leave the current room first."); return; }
-  username = document.getElementById("username").value.trim(); 
-  if (username.length < 3 || username.length > 20) {
-      alert("Username must be between 3 and 20 characters.");
-      return;
-  }  
-  if(!username) { alert("Enter your name"); return; }
+  if (roomCode) { alert("Leave current room first."); return; }
+  username = document.getElementById("username").value.trim();
+  if (username.length < 3 || username.length > 20) { alert("Username 3-20 chars"); return; }
+
   roomCode = Math.random().toString(36).substring(2,7).toUpperCase();
-  const now = Date.now();
+  
+  
   const doors = {};
-  DOORS.forEach(d=>doors[d.id]={opened:false,by:null});
-  db.ref("rooms/"+roomCode).set({ createdAt:now, expiresAt: now+4*60*60*1000, doors, users:{} }).then(()=>joinRoom(roomCode));
+  DOORS.forEach(d => doors[d.id] = { opened:false, by: userUID, at: Date.now() });
+
+  
+  const initialUser = {};
+  initialUser[userUID] = {
+      name: username,
+      color: userColor || COLOR_MAP.green,
+      joinedAt: Date.now()
+  };
+
+  
+  const roomData = { 
+      createdAt: Date.now(), 
+      expiresAt: Date.now() + 4*60*60*1000, 
+      doors: doors,
+      users: initialUser 
+  };
+  
+  
+  db.ref("rooms/" + roomCode).set(roomData)
+    .then(() => joinRoom(roomCode))
+    .catch(err => { 
+        console.error(err); 
+        alert("Failed to create room. " + err.message); 
+        roomCode = null;
+    });
 }
 
 function joinRoomInput() {
-  if(roomCode) { alert("Leave the current room first."); return; }
+  if(roomCode){ alert("Leave current room first."); return; }
   username = document.getElementById("username").value.trim();
-  if (username.length < 3 || username.length > 20) {
-    alert("Username must be between 3 and 20 characters.");
-    return;
-  }  
-  if(!username) { alert("Enter your name"); return; }
+  if(username.length<3 || username.length>20){ alert("Username 3-20 chars"); return; }
   const input = document.getElementById("joinCode").value.trim().toUpperCase();
-  if(!input) { alert("Enter a room code"); return; }
+  if(!input){ alert("Enter room code"); return; }
   joinRoom(input);
 }
 
-function joinRoom(code) {
-  const roomRef = db.ref("rooms/" + code);
-
-  roomRef.once("value").then(roomSnap => {
-    if (!roomSnap.exists()) { alert("Room not found."); return; }
+function joinRoom(code){
+  const roomRef = db.ref("rooms/"+code);
+  roomRef.once("value").then(roomSnap=>{
+    if(!roomSnap.exists()){ alert("Room not found"); return; }
     const room = roomSnap.val();
-    if (Date.now() > room.expiresAt) { alert("Room expired"); return; }
+    if(Date.now() > room.expiresAt){ alert("Room expired"); return; }
 
-    
     const usersRef = db.ref(`rooms/${code}/users`);
-    usersRef.once("value").then(snap => {
-      const users = snap.val() || {};
-      const nameTaken = Object.values(users).some(u => u.name === username);
-      if (nameTaken) {
-        alert("That username is already taken in this room.");
+    usersRef.once("value").then(snap=>{
+      const users = snap.val()||{};
+      if(Object.entries(users).some(([uid, u]) => uid !== userUID && u.name === username)){
+        alert("Name taken");
         return;
-      } 
+      }
       const userRef = db.ref(`rooms/${code}/users/${userUID}`);
-      if (!userColor) userColor = COLOR_MAP.green;
-      userRef.set({
-        name: username,
-        color: userColor,
-        joinedAt: Date.now()
-      });
+      if(!userColor) userColor = COLOR_MAP.green;
+      userRef.set({ name: username, color: userColor, joinedAt: Date.now() });
       userRef.onDisconnect().remove();
-
       roomCode = code;
 
       
-      document.getElementById("room-code").innerText = code;
+      document.getElementById("room-code").innerText=code;
       document.getElementById("room-info").classList.remove("hidden");
       document.getElementById("users-list").classList.remove("hidden");
       document.querySelector(".map-container").classList.remove("hidden");
@@ -378,300 +320,222 @@ function joinRoom(code) {
       currentFloor = 1;
 
       
-      let previousUsers = {};
-      usersRef.on("value", snap => {
-        const users = snap.val() || {};
-        Object.keys(previousUsers).forEach(uid => {
-          if (!users[uid]) {
-            const nameLeft = previousUsers[uid].name || "Unknown";
+      let previousUsers={};
+      usersRef.on("value", snap=>{
+        const users = snap.val()||{};
+        Object.keys(previousUsers).forEach(uid=>{
+          if(!users[uid]){
+            const nameLeft = previousUsers[uid].name||"Unknown";
             showNotification(`<b>${nameLeft}</b> left the room`);
           }
         });
-        previousUsers = { ...users };
-        usersCache = users;
-
-        const list = Object.values(users).map(u => `<span style="color:${u.color}; font-weight:bold;">${u.name}</span>`).join(", ");
-        document.getElementById("users-list").innerHTML = "Users in room: " + (list || "None");
+        previousUsers={...users};
+        usersCache=users;
+        const list = Object.values(users).map(u=>`<span style="color:${u.color}; font-weight:bold;">${u.name}</span>`).join(", ");
+        document.getElementById("users-list").innerHTML="Users in room: "+(list||"None");
       });
 
-      
       roomExpiresAt = room.expiresAt;
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
+      if(timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(()=>{
         const remaining = roomExpiresAt - Date.now();
-        if (remaining <= 0) {
-          document.getElementById("room-timer").innerText = "Expired";
-          leaveRoom();
-          return;
-        }
-        const totalSeconds = Math.floor(remaining / 1000),
-              h = Math.floor(totalSeconds / 3600),
-              m = Math.floor((totalSeconds % 3600) / 60),
-              s = totalSeconds % 60;
-        document.getElementById("room-timer").innerText =
-          `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
-      }, 1000);
+        if(remaining <=0){ document.getElementById("room-timer").innerText="Expired"; leaveRoom(); return; }
+        const tSec=Math.floor(remaining/1000), h=Math.floor(tSec/3600), m=Math.floor((tSec%3600)/60), s=tSec%60;
+        document.getElementById("room-timer").innerText = `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+      },1000);
 
-     
-      roomRef.child("doors").once("value").then(snap => {
-        doorsState = snap.val() || {};
+      
+      roomRef.child("doors").once("value").then(snap=>{
+        doorsState = snap.val()||{};
         renderDoors();
         renderDoorList();
       });
-      roomRef.child("doors").on("child_changed", snap => {
+
+      roomRef.child("doors").on("child_changed", snap=>{
         const doorId = snap.key, data = snap.val();
         doorsState[doorId] = data;
         renderDoors();
         renderDoorList();
 
-        if (data.opened) {
-          const uid = data.by;
-          const userObj = usersCache?.[uid];
-          const name = userObj?.name || "Unknown";
-          const color = userObj?.color || "#fff";
-          const door = DOORS.find(d => d.id === doorId);
-          if (door) showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> opened ${door.label}`);
+        if(data.opened){
+          const userObj = usersCache?.[data.by];
+          const name = userObj?.name||"Unknown";
+          const color = userObj?.color||"#fff";
+          const door = DOORS.find(d=>d.id===doorId);
+          if(door) showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> opened ${door.label}`);
         }
       });
 
       
-     roomRef.on("value", snap => {
-  const data = snap.val();
-  if (!snap.exists() || data?.deleting) {
-    const user = usersCache?.[data?.deletedBy];
-    const name = user?.name || "Someone";
-    const color = user?.color || "#fff";
-
-    showNotification(
-      `<span style="color:${color}; font-weight:bold;">${name}</span> deleted the room`
-    );
-    cleanupRoomState();
-  }
-});
-
-
-      
-     roomRef.child("lastAction").on("value", snap => {
-  const action = snap.val();
-  if (!action || action.type !== "reset") return;
-
-  const user = usersCache?.[action.by];
-  const name = user?.name || "Someone";
-  const color = user?.color || "#fff";
-
-  showNotification(
-    `<span style="color:${color}; font-weight:bold;">${name}</span> reset the doors`
-  );
-});
-
-const historyRef = db.ref(`rooms/${code}/history`);
-historyRef.limitToLast(10).on("value", snap => {
-  const list = document.getElementById("history-list");
-  list.innerHTML = "";
-
-  const entries = [];
-  snap.forEach(childSnap => {
-    entries.push(childSnap.val());
-  });
-
-  
-  entries.forEach(e => {
-    const user = usersCache?.[e.by];
-    const name = user?.name || "Unknown";
-    const color = user?.color || "#fff";
-
-    const li = document.createElement("li");
-    li.style.margin = "4px 0";
-    li.innerHTML = `<span style="color:${color}; font-weight:bold;">${name}</span> ${e.text}`;
-    list.appendChild(li);
-  });
-
-  
-  list.scrollTop = list.scrollHeight;
-});
-
-
-    }); // usersRef.once
-  }); // roomRef.once
-}
-
-
-
-function renderDoors() {
-  const container = document.querySelector(".map-container");
-  if (!container || !roomCode) return;
-
-  
-  document.querySelectorAll(".door-icon").forEach(el => el.remove());
-
-  DOORS.forEach(d => {
-    const btn = document.createElement("button");
-    btn.classList.add("door-icon");
-
-    const doorState = doorsState[d.id] || { opened: false };
-    if (doorState.opened) btn.classList.add("opened");
-
-    btn.style.top = d.top;
-    btn.style.left = d.left;
-    btn.setAttribute("data-label", d.label);
-    btn.style.display = d.floor === currentFloor ? "block" : "none";
-
-    
-    btn.onclick = () => {
-      if (!roomCode) return;
-      const newOpened = !btn.classList.contains("opened");
-      btn.classList.toggle("opened", newOpened);
-      db.ref(`rooms/${roomCode}/doors/${d.id}`).set({
-        opened: newOpened,
-        by: userUID,
-        at: newOpened ? Date.now() : null
+      roomRef.on("value", snap=>{
+        const data = snap.val();
+        if(!snap.exists() || data?.deleting){
+          const user = usersCache?.[data?.deletedBy];
+          const name = user?.name||"Someone";
+          const color = user?.color||"#fff";
+          showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> deleted the room`);
+          cleanupRoomState();
+        }
       });
 
-logHistory({
-  type: "door",
-  by: userUID,
-  text: `${newOpened ? "opened" : "closed"} ${d.label}`
-});
+      
+      roomRef.child("lastAction").on("value", snap=>{
+        const action = snap.val();
+        if(!action || action.type!=="reset") return;
+        const user = usersCache?.[action.by];
+        const name = user?.name||"Someone";
+        const color = user?.color||"#fff";
+        showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> reset the doors`);
+      });
 
+      
+      const historyRef = db.ref(`rooms/${code}/history`);
+      historyRef.limitToLast(15).on("value", snap => {
+        const list = document.getElementById("history-list");
+        list.innerHTML = "";
+
+        const entries = snap.val();
+        if (!entries) return;
+
+        Object.values(entries).forEach(e => {
+          const user = usersCache?.[e.by];
+          const name = user?.name || "Unknown";
+          const color = user?.color || "#fff";
+
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <span style="color:${color}; font-weight:bold;">${name}</span>
+            ${e.text}
+          `;
+          list.appendChild(li);
+        });
+      });      
+    });
+  });
+}
+  
+function renderDoors(){
+  const container = document.querySelector(".map-container");
+  if(!container || !roomCode) return;
+  document.querySelectorAll(".door-icon").forEach(el=>el.remove());
+  DOORS.forEach(d=>{
+    const btn = document.createElement("button");
+    btn.classList.add("door-icon");
+    const state = doorsState[d.id]||{opened:false};
+    if(state.opened) btn.classList.add("opened");
+    btn.style.top=d.top; btn.style.left=d.left;
+    btn.setAttribute("data-label", d.label);
+    btn.style.display=d.floor===currentFloor?"block":"none";
+    btn.onclick=()=>{
+      if(!roomCode) return;
+      const newOpened = !btn.classList.contains("opened");
+      btn.classList.toggle("opened", newOpened);
+      
+      db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ 
+          opened: newOpened, 
+          by: userUID, 
+          at: Date.now() 
+      }).catch(e => {
+          console.error("Permission denied");
+          btn.classList.toggle("opened", !newOpened);
+      });
+      
+      logHistory({type:"door", by:userUID, text:`${newOpened?"opened":"closed"} ${d.label}`});
     };
-
     container.appendChild(btn);
   });
 }
 
-function renderDoorList() {
-  if (!roomCode) return;
-
+function renderDoorList(){
+  if(!roomCode) return;
   const list = document.getElementById("door-list");
   const text = document.getElementById("door-progress-text");
   const bar = document.getElementById("door-progress-bar");
-
-  list.innerHTML = "";
-  let openedCount = 0;
-
-  const sortedDoors = [...DOORS].sort((a, b) => b.floor - a.floor);
-
-  sortedDoors.forEach(door => {
-    const state = doorsState[door.id];
-    if (!state) return;
-
-    if (state.opened) openedCount++;
-
-    const li = document.createElement("li");
-    li.style.cursor = "pointer";
-    li.style.margin = "6px 0";
-    li.style.padding = "6px 10px";
-    li.style.borderRadius = "6px";
-
-    li.classList.add(state.opened ? "door-opened" : "door-closed");
-
-    // animation
-    li.classList.add("animate");
-    setTimeout(() => li.classList.remove("animate"), 150);
-
-    // user info
+  list.innerHTML=""; let openedCount=0;
+  const sortedDoors=[...DOORS].sort((a,b)=>b.floor-a.floor);
+  sortedDoors.forEach(door=>{
+    const state=doorsState[door.id]; if(!state) return;
+    if(state.opened) openedCount++;
+    const li=document.createElement("li");
+    li.style.cursor="pointer"; li.style.margin="6px 0"; li.style.padding="6px 10px"; li.style.borderRadius="6px";
+    
+    li.classList.add(state.opened?"door-opened":"door-closed");
+    
     const user = usersCache[state.by];
-    const name = user?.name || "Unknown";
-    const color = user?.color || "#fff";
-    const openedAt = state.at
-      ? new Date(state.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      : "";
-
-    li.innerHTML = `
-      <div class="door-title">
-        ${door.label} (${door.floor === 2 ? "2F" : "1F"})
-      </div>
-      ${
-        state.opened
-          ? `<div class="door-meta">
-               opened by <span style="color:${color}; font-weight:bold;">${name}</span>
-               <span class="door-time">${openedAt}</span>
-             </div>`
-          : ""
-      }
-    `;
-
-    li.onclick = () => {
-      const newState = !state.opened;
-
-      db.ref(`rooms/${roomCode}/doors/${door.id}`).set({
-        opened: newState,
-        by: userUID,
-        at: newState ? Date.now() : null
+    const name = user?.name||"Unknown";
+    const color = user?.color||"#fff";
+    const openedAt = state.at ? new Date(state.at).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : "";
+    li.innerHTML=`<div class="door-title">${door.label} (${door.floor===2?"2F":"1F"})</div>
+      ${state.opened?`<div class="door-meta">opened by <span style="color:${color}; font-weight:bold;">${name}</span><span class="door-time">${openedAt}</span></div>`:""}`;
+    
+    // START OF CRITICAL CORRECTION
+    li.onclick=()=>{ 
+      const newState=!state.opened;
+      
+      
+      
+      db.ref(`rooms/${roomCode}/doors/${door.id}`).set({ 
+          opened:newState, 
+          by:userUID, 
+          at:Date.now() 
+      }).catch(e => {
+       
+        console.error("Permission denied for checklist update: ", e);
       });
-
-      logHistory({
-        type: "door",
-        by: userUID,
-        text: `${newState ? "opened" : "closed"} ${door.label}`
-      });
+      
+      logHistory({type:"door", by:userUID, text:`${newState?"opened":"closed"} ${door.label}`});
     };
-
+    
+    
     list.appendChild(li);
   });
-
-  const total = DOORS.length;
-  const percent = total ? Math.round((openedCount / total) * 100) : 0;
-
-  text.innerText = `${openedCount} / ${total} opened`;
-  bar.style.width = percent + "%";
+  const total=DOORS.length;
+  const percent=total?Math.round((openedCount/total)*100):0;
+  text.innerText=`${openedCount} / ${total} opened`;
+  bar.style.width=percent+"%";
 }
 
 function switchFloor(floor){
   currentFloor=floor;
   document.getElementById("map-image").src=floor===1?"floor1.png":"floor2.png";
   document.querySelectorAll(".floor-btn").forEach(btn=>btn.classList.remove("active"));
-  document.querySelector(`.floor-btn:nth-child(${floor})`).classList.add("active");
+  document.querySelector(`.floor-btn[data-floor='${floor}']`).classList.add("active");
   document.querySelectorAll(".door-icon").forEach(btn=>{
     const door = DOORS.find(d=>d.label===btn.getAttribute("data-label"));
-    btn.style.display = door&&door.floor===floor?"block":"none";
+    btn.style.display = door && door.floor===floor?"block":"none";
   });
 }
 
+document.getElementById("reset-btn").addEventListener("click", resetDoors);
+document.getElementById("delete-btn").addEventListener("click", deleteRoom);
+document.getElementById("leave-btn").addEventListener("click", leaveRoom);
 
 function resetDoors(){
-  if(!roomCode || !username) return;
-  const resetState = {}; DOORS.forEach(d=>resetState[d.id]={opened:false,by:null});
- db.ref(`rooms/${roomCode}`).update({
-  doors: resetState,
-  lastAction: { type:"reset", by:userUID, at:Date.now() }
-});
-
-logHistory({
-  type: "reset",
-  by: userUID,
-  text: "reset all doors"
-});
-
-
+  if(!roomCode) return;
+  const resetState={}; 
+  DOORS.forEach(d => resetState[d.id] = { opened: false, by: userUID, at: Date.now() });
+  
+  db.ref(`rooms/${roomCode}`).update({ 
+      doors: resetState, 
+      lastAction: { type: "reset", by: userUID, at: Date.now() } 
+  });
+  logHistory({ type: "reset", by: userUID, text: "reset all doors" });
 }
 
 function deleteRoom(){
   if(!roomCode || !confirm("Are you sure you want to delete the room?")) return;
   const roomRef = db.ref(`rooms/${roomCode}`);
-  roomRef.update({
-  deleting: true,
-  deletedBy: userUID,
-  deletedAt: Date.now()
-});
-
-logHistory({
-  type: "delete",
-  by: userUID,
-  text: "deleted the room"
-});
-
-
-  setTimeout(()=>roomRef.remove(), 1200);
+  roomRef.update({ deleting:true, deletedBy:userUID, deletedAt:Date.now() });
+  logHistory({type:"delete", by:userUID, text:"deleted the room"});
+  setTimeout(()=>roomRef.remove(),1200);
 }
 
 function leaveRoom(){
-  if(!roomCode || !username) return;
+  if(!roomCode) return;
   db.ref(`rooms/${roomCode}/users/${userUID}`).remove();
   cleanupRoomState();
   showNotification(`You left room <b>(${roomCode})</b>`);
 }
-
 
 function cleanupRoomState(){
   if(timerInterval) clearInterval(timerInterval);
@@ -679,6 +543,7 @@ function cleanupRoomState(){
     db.ref(`rooms/${roomCode}`).off();
     db.ref(`rooms/${roomCode}/doors`).off();
     db.ref(`rooms/${roomCode}/users`).off();
+    db.ref(`rooms/${roomCode}/history`).off();
   }
   document.querySelector(".map-container").classList.add("hidden");
   document.getElementById("floor-buttons").classList.add("hidden");
@@ -686,34 +551,21 @@ function cleanupRoomState(){
   document.getElementById("users-list").classList.add("hidden");
   document.getElementById("door-card").classList.add("hidden");
   document.getElementById("history-card").classList.add("hidden");
-  document.getElementById("history-list").innerHTML = "";
+  document.getElementById("history-list").innerHTML="";
   document.getElementById("input-row").classList.remove("hidden");
   document.querySelectorAll(".door-icon").forEach(btn=>btn.remove());
   document.getElementById("room-code").innerText="";
   document.getElementById("room-timer").innerText="--:--";
   document.getElementById("users-list").innerHTML="";
-db.ref(`rooms/${roomCode}/history`).off();
-document.getElementById("history-list").innerHTML = "";
-
   setLobbyLocked(false);
   roomCode=null; doorsState={}; usersCache={};
 }
 
 
-function setLobbyLocked(locked){
-  document.getElementById("joinCode").disabled=locked;
-  document.getElementById("username").disabled=locked;
-  document.querySelectorAll('button[onclick="createRoom()"], button[onclick="joinRoomInput()"]').forEach(btn=>btn.disabled=locked);
-}
-
 function logHistory(entry){
   if(!roomCode) return;
-  db.ref(`rooms/${roomCode}/history`).push({
-    ...entry,
-    at: Date.now()
-  });
+  db.ref(`rooms/${roomCode}/history`).push({...entry, at:Date.now()});
 }
-
 
 function showNotification(html){
   const container=document.getElementById("notifications-container");
@@ -723,6 +575,7 @@ function showNotification(html){
   container.appendChild(notif);
   setTimeout(()=>{ notif.style.opacity="0"; setTimeout(()=>container.removeChild(notif),500); },3000);
 }
+
 </script>
 </div>
 </body>
