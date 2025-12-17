@@ -243,7 +243,11 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
+const TRUSTED_UIDS = [
+    'cn3Dd5FKMQfpyRSljXCmc1R3KJU2',
+    '0zyksYUKCPXJmJFrBAAWXC3MMjp2', 
+    'UID' 
+];
 
 setLobbyLocked(true);
 firebase.auth().signInAnonymously()
@@ -251,6 +255,7 @@ firebase.auth().signInAnonymously()
     userUID = res.user.uid; 
     console.log("UID", userUID); 
     checkBanStatus(); 
+    checkStaleRooms(res.user);
   })
   .catch(err => { 
     console.error(err); 
@@ -699,47 +704,68 @@ function logHistory(entry){
 }
 
 // Function to clean up expired or truly empty rooms (runs on client activity)
-function checkStaleRooms() {
-    console.log("Starting client-side stale room cleanup...");
-    const roomsRef = db.ref("rooms");
-    const now = Date.now();
-    const batchUpdates = {};
-    let roomsDeleted = 0;
+// Function to clean up expired or truly empty rooms (runs on client activity)
+function checkStaleRooms(user = firebase.auth().currentUser) {
     
-    roomsRef.once("value")
-        .then(snapshot => {
-            snapshot.forEach(roomSnapshot => {
-                const roomId = roomSnapshot.key;
-                const roomData = roomSnapshot.val();
-                
-                if (!roomData) return; 
+    // Safety check for when this is called from createRoom/joinRoomInput
+    if (!user) {
+        user = firebase.auth().currentUser;
+        if (!user) return; // Exit if still no user
+    }
 
-                const isExpired = roomData.expiresAt && roomData.expiresAt < now;
-                const isEmpty = !roomData.users || Object.keys(roomData.users).length === 0;
+    console.log("Starting stale room cleanup..."); 
 
-                const ONE_HOUR_MS = 600000; 
+if (TRUSTED_UIDS.includes(user.uid)) {
+    
+    console.log("Trusted ID Authorized"); 
+    
+        
+        const roomsRef = db.ref("rooms");
+        const now = Date.now();
+        const batchUpdates = {};
+        let roomsDeleted = 0;
+        
+        roomsRef.once("value")
+            .then(snapshot => {
+                snapshot.forEach(roomSnapshot => {
+                    const roomId = roomSnapshot.key;
+                    const roomData = roomSnapshot.val();
+                    
+                    if (!roomData) return; 
 
-                // Criteria: the room is expired OR it is currently empty AND older than 1 hour
-                const isOldAndEmpty = isEmpty && (roomData.createdAt < (now - ONE_HOUR_MS)); 
+                    const isExpired = roomData.expiresAt && roomData.expiresAt < now;
+                    const isEmpty = !roomData.users || Object.keys(roomData.users).length === 0;
 
-                if (isExpired || isOldAndEmpty) {
-                    batchUpdates[roomId] = null; 
-                    roomsDeleted++;
+                    const ONE_HOUR_MS = 3600000;
+
+                    
+                    const isOldAndEmpty = isEmpty && (roomData.createdAt < (now - ONE_HOUR_MS)); 
+
+                    if (isExpired || isOldAndEmpty) {
+                        batchUpdates[roomId] = null; 
+                        roomsDeleted++;
+                    }
+                });
+
+                if (roomsDeleted > 0) {
+                    return roomsRef.update(batchUpdates)
+                        .then(() => {
+                            console.log(`Finished cleanup. Deleted ${roomsDeleted} stale rooms.`);
+                        });
+                } else {
+                    console.log("Finished cleanup. No stale rooms found.");
                 }
+            })
+            .catch(err => {
+                // This catch block handles server-side permission denial for the trusted UID itself,
+                // or general network/database errors.
+                console.error("Client-side cleanup failed unexpectedly (e.g., network or rule error):", err);
             });
-
-            if (roomsDeleted > 0) {
-                return roomsRef.update(batchUpdates)
-                    .then(() => {
-                        console.log(`Finished cleanup. Deleted ${roomsDeleted} stale rooms.`);
-                    });
-            } else {
-                console.log("Finished cleanup. No stale rooms found.");
-            }
-        })
-        .catch(err => {
-            console.error("Client-side cleanup failed:", err);
-        });
+        
+    } else {
+        // Denied message for all non-trusted UIDs
+        console.log("User is not a Trusted ID. Skipping room cleanup attempt."); 
+    }
 }
 
 function showNotification(html){
