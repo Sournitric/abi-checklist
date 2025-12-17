@@ -293,7 +293,7 @@ function createRoom() {
         return;
     }
 
-checkStaleRooms(); 
+checkStaleRooms(firebase.auth().currentUser, "Starting second check for stale rooms...");
 
   if (roomCode) { alert("Leave current room first."); return; }
   username = document.getElementById("username").value.trim();
@@ -342,23 +342,22 @@ function joinRoomInput() {
         return;
     }
 
-checkStaleRooms();
+checkStaleRooms(firebase.auth().currentUser, "Starting second check for stale rooms...");
 
     if (roomCode) { alert("Leave current room first."); return; }
     
     username = document.getElementById("username").value.trim();
     if (!isUsernameValid(username)) {
         alert("Username must be 3-20 characters long and cannot contain unusual symbols.");
-        return; // Stops if the username is invalid
+        return;
     }  
     
     const input = document.getElementById("joinCode").value.trim().toUpperCase();
     if (!input) { alert("Enter room code"); return; }
     
-    // Check Room Code validity using the same function, but with a specific alert
     if (!isUsernameValid(input)) {
         alert("The room code must be 3-20 characters and contain only letters/numbers.");
-        return; // Stops if the room code is invalid
+        return;
     }
 
     joinRoom(input);
@@ -513,7 +512,6 @@ function renderDoors(){
     const container = document.querySelector(".map-container");
     if(!container || !roomCode) return; 
     
-    // Cleanup existing icons
     document.querySelectorAll(".door-icon").forEach(el=>el.remove()); 
 
     DOORS.forEach(d=>{
@@ -523,7 +521,6 @@ function renderDoors(){
         const state = doorsState[d.id]||{opened:false};
         if(state.opened) btn.classList.add("opened");
         
-        // Add ID attribute for targeted UI updates
         btn.setAttribute("data-door-id", d.id); 
         btn.setAttribute("data-label", d.label);
         
@@ -534,7 +531,6 @@ function renderDoors(){
             if(!roomCode) return;
             const newOpened = !btn.classList.contains("opened");
             
-            // 1. OPTIMISTIC UI: Update both the map icon and checklist immediately
             optimisticToggleUI(d.id, newOpened);
 
             db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ 
@@ -543,13 +539,11 @@ function renderDoors(){
                 at: Date.now() 
             })
             .then(() => {
-                // 2. LOG: Only if write succeeds
                 logHistory({type:"door", by:userUID, text:`${newOpened?"opened":"closed"} ${d.label}`});
             })
             .catch(e => {
                 console.error("Permission denied or database write failed:", e);
-                // 3. ROLLBACK: Revert both the map icon and checklist on failure
-                optimisticToggleUI(d.id, !newOpened, true); // Pass true for rollback
+                optimisticToggleUI(d.id, !newOpened, true);
                 alert("Action failed. Check console for details.");
             });
         };
@@ -579,7 +573,7 @@ function renderDoorList(){
         li.style.borderRadius="6px";
         
         li.classList.add(state.opened?"door-opened":"door-closed");
-        li.setAttribute("data-door-id", door.id); // Add ID attribute
+        li.setAttribute("data-door-id", door.id);
         
         const user = usersCache[state.by];
         const name = user?.name||"Unknown";
@@ -592,7 +586,6 @@ function renderDoorList(){
         li.onclick=()=>{ 
             const newState=!state.opened;
             
-            // 1. OPTIMISTIC UI: Update both the checklist item and map icon immediately
             optimisticToggleUI(door.id, newState);
 
             db.ref(`rooms/${roomCode}/doors/${door.id}`).set({ 
@@ -601,13 +594,11 @@ function renderDoorList(){
                 at:Date.now() 
             })
             .then(() => {
-                // 2. LOG: Only if write succeeds
                 logHistory({type:"door", by:userUID, text:`${newState?"opened":"closed"} ${door.label}`});
             })
             .catch(e => {
                 console.error("Permission denied for checklist update: ", e);
-                // 3. ROLLBACK: Revert both the checklist item and map icon on failure
-                optimisticToggleUI(door.id, !newState, true); // Pass true for rollback
+                optimisticToggleUI(door.id, !newState, true);
                 alert("Action failed. Check console for details.");
             });
         };
@@ -703,22 +694,16 @@ function logHistory(entry){
   db.ref(`rooms/${roomCode}/history`).push({...entry, at:Date.now()});
 }
 
-// Function to clean up expired or truly empty rooms (runs on client activity)
-// Function to clean up expired or truly empty rooms (runs on client activity)
-function checkStaleRooms(user = firebase.auth().currentUser) {
-    
-    // Safety check for when this is called from createRoom/joinRoomInput
+function checkStaleRooms(user = firebase.auth().currentUser, customMessage = "Starting stale room cleanup...") {
     if (!user) {
         user = firebase.auth().currentUser;
-        if (!user) return; // Exit if still no user
+        if (!user) return;
     }
+    console.log(customMessage); 
 
-    console.log("Starting stale room cleanup..."); 
-
-if (TRUSTED_UIDS.includes(user.uid)) {
-    
-    console.log("Trusted ID Authorized"); 
-    
+    if (TRUSTED_UIDS.includes(user.uid)) {
+        
+        console.log("Trusted ID Authorized"); 
         
         const roomsRef = db.ref("rooms");
         const now = Date.now();
@@ -736,10 +721,9 @@ if (TRUSTED_UIDS.includes(user.uid)) {
                     const isExpired = roomData.expiresAt && roomData.expiresAt < now;
                     const isEmpty = !roomData.users || Object.keys(roomData.users).length === 0;
 
-                    const ONE_HOUR_MS = 3600000;
+                    const OLD_MS = 30000; 
 
-                    
-                    const isOldAndEmpty = isEmpty && (roomData.createdAt < (now - ONE_HOUR_MS)); 
+                    const isOldAndEmpty = isEmpty && (roomData.createdAt < (now - OLD_MS)); 
 
                     if (isExpired || isOldAndEmpty) {
                         batchUpdates[roomId] = null; 
@@ -757,13 +741,10 @@ if (TRUSTED_UIDS.includes(user.uid)) {
                 }
             })
             .catch(err => {
-                // This catch block handles server-side permission denial for the trusted UID itself,
-                // or general network/database errors.
                 console.error("Client-side cleanup failed unexpectedly (e.g., network or rule error):", err);
             });
         
     } else {
-        // Denied message for all non-trusted UIDs
         console.log("User is not a Trusted ID. Skipping room cleanup attempt."); 
     }
 }
@@ -794,7 +775,6 @@ function isUsernameValid(str) {
     return allowedPattern.test(str);
 }
 
-// --- MODIFIED FUNCTION ---
 function checkBanStatus() {
     if (!userUID) {
         setLobbyLocked(true); 
@@ -802,12 +782,12 @@ function checkBanStatus() {
     }
     db.ref(`bannedUsers/${userUID}`).once("value").then(snap => {
         if (snap.exists()) {
-            isUserBanned = true; // <-- SET GLOBAL VARIABLE
+            isUserBanned = true;
             alert("You have been banned from using this service.");
             console.error("User is banned:", userUID);
             setLobbyLocked(true); 
         } else {
-            isUserBanned = false; // <-- SET GLOBAL VARIABLE
+            isUserBanned = false;
             setLobbyLocked(false);
         }
     }).catch(err => {
