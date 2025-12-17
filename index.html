@@ -280,6 +280,39 @@ colorSelect.addEventListener("change",()=>updateUserColor(colorSelect.value));
 advancedBtn.addEventListener("click",()=>{advancedInput.style.display = advancedInput.style.display==="none"?"inline-block":"none";});
 advancedInput.addEventListener("change",()=>{const val=advancedInput.value.trim(); if(/^#([0-9A-Fa-f]{6})$/.test(val)) updateUserColor(val); else alert("Invalid hex code");});
 
+
+function isUsernameValid(str) {
+    const maxLength = 20; 
+    const uidToCheck = userUID;
+
+    if (str.length > maxLength) {
+        return false;
+    }
+    
+    if (uidToCheck && TRUSTED_USERNAMES_UIDS.includes(uidToCheck)) {
+        
+        console.log(`Trusted Username UID (${uidToCheck}): Length and symbol bypass active.`);
+        const illegalChars = /[\p{C}]/u; 
+        return !illegalChars.test(str); 
+    }
+
+
+    const minLength = 3; 
+
+    if (str.length < minLength) { 
+        return false;
+    }
+
+    const illegalChars = /[\p{C}]/u;
+    if (illegalChars.test(str)) {
+        return false;
+    }
+
+    const allowedPattern = /^[ \p{L}0-9_.-]+$/u; 
+    return allowedPattern.test(str);
+}
+
+
 function updateUserColor(colorKeyOrHex){
   if(!roomCode || !userUID) return;
   userColor = COLOR_MAP[colorKeyOrHex] || colorKeyOrHex;
@@ -767,32 +800,7 @@ function showNotification(html){
   setTimeout(()=>{ notif.style.opacity="0"; setTimeout(()=>container.removeChild(notif),500); },3000);
 }
 
-function isUsernameValid(str) {
-    const minLength = 3;
-    const maxLength = 20;
-    const uidToCheck = userUID;
 
-    if (str.length < minLength || str.length > maxLength) {
-        return false;
-    }
-    
-    if (uidToCheck && TRUSTED_USERNAMES_UIDS.includes(uidToCheck)) {
-        
-        console.log(`Trusted Username UID (${uidToCheck}): Username symbol check bypassed.`);
-        
-        const illegalChars = /[\p{C}]/u; 
-        
-        return !illegalChars.test(str); 
-    }
-
-    const illegalChars = /[\p{C}]/u;
-    if (illegalChars.test(str)) {
-        return false;
-    }
-
-    const allowedPattern = /^[ a-zA-Z0-9_.-]+$/; 
-    return allowedPattern.test(str);
-}
 
 function checkBanStatus() {
     if (!userUID) {
