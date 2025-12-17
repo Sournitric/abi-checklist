@@ -246,9 +246,15 @@ const db = firebase.database();
 
 setLobbyLocked(true);
 firebase.auth().signInAnonymously()
-  .then(res=>{ userUID=res.user.uid; console.log("UID", userUID); setLobbyLocked(false); })
-  .catch(err=>{ console.error(err); alert("Firebase auth failed"); });
-
+  .then(res => { 
+    userUID = res.user.uid; 
+    console.log("UID", userUID); 
+    checkBanStatus(); 
+  })
+  .catch(err => { 
+    console.error(err); 
+    alert("Firebase authentication failed"); 
+  });
 
 const colorSelect=document.getElementById("userColor");
 const advancedBtn=document.getElementById("advancedColorBtn");
@@ -702,6 +708,31 @@ function isUsernameValid(str) {
     const allowedPattern = /^[ \p{L}\p{N}_.-]+$/u;
     return allowedPattern.test(str);
 }
+
+// --- NEW FUNCTION: Check Ban Status for Banning Feature ---
+function checkBanStatus() {
+    if (!userUID) {
+        setLobbyLocked(true); 
+        return;
+    }
+    db.ref(`bannedUsers/${userUID}`).once("value").then(snap => {
+        if (snap.exists()) {
+            alert("You have been banned from using this service.");
+            console.error("User is banned:", userUID);
+            setLobbyLocked(true); // Keep the lobby locked permanently for the banned user
+        } else {
+            // User is not banned
+            setLobbyLocked(false);
+        }
+    }).catch(err => {
+        console.error("Failed to check ban status:", err);
+        alert("A temporary error occurred during service check. Please try again.");
+        setLobbyLocked(true); // Lock as a precaution if service check fails
+    });
+}
+
+
+
 
 </script>
 </div>
