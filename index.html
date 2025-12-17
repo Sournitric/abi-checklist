@@ -6,10 +6,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 * { box-sizing: border-box; }
-body { background: #0f1115; color: #e6e6e6; font-family: Arial, sans-serif; padding: 20px; }
-.card { max-width: 700px; background: #1b1f2a; padding: 20px; border-radius: 10px; position: absolute; left: 50%; transform: translateX(-50%); }
-button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-radius: 6px; background: #4095f4; color: white; font-size: 14px; cursor: pointer; }
-.floor-btn.active { background: #2d6cd2; }
+body { background: #0f1115; 
+       color: #e6e6e6;
+       font-family: Arial, sans-serif; padding: 20px; }
+
+
+.card { max-width: 700px; 
+        background: #1b1f2a; 
+        padding: 20px; border-radius: 10px; position: absolute; left: 50%; transform: translateX(-50%); }
+
+button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-radius: 6px; 
+                     background: #345c8c; 
+                     color: white; 
+                     font-size: 14px; cursor: pointer; }
+
+.floor-btn.active { background: #2a4c6e; }
 .map-container { position: relative; width: 100%; margin-top: 15px; }
 .map-image { width: 100%; display: block; }
 
@@ -28,16 +39,38 @@ button, .floor-btn { padding: 8px 12px; margin: 5px 2px; border: none; border-ra
   box-sizing: border-box;
 }
 .door-icon.opened { background: rgba(0,255,0,0.55); }
+
+
 .door-icon:hover::after {
   content: attr(data-label);
   position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
-  background: #222; color: white; padding: 4px 8px; font-size: 12px;
+  background: #222; 
+  color: white; padding: 4px 8px; font-size: 12px;
   border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 10;
   min-width: max-content; text-align: center; overflow-wrap: break-word;
 }
 
 #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
+
 input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px; border-radius: 6px; border: none; font-size: 14px; }
+#userColor {
+    background: #1b1f2a;      
+    color: #e6e6e6;          
+    border: 1px solid #345c8c; 
+    padding: 7px 30px 7px 7px; 
+    border-radius: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+
+    
+    
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23e6e6e6'><path d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/></svg>");
+    background-repeat: no-repeat;
+    
+    background-position: right 8px center;
+    background-size: 14px;
+}
+
 .hidden { display: none !important; }
 .input-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
 .input-row input { flex: 0 0 150px; }
@@ -46,6 +79,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 
 .color-selector-row { margin-top:10px; }
 .page-layout { position: relative; width: 100%; min-height: 100vh; }
+
 
 .side-card { 
   width: 260px; 
@@ -62,13 +96,11 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
   left: calc(50% - 650px); 
 }
 
-
 #history-list { 
   list-style: none; 
   padding: 0; 
   margin: 0; 
 }
-
 
 #history-card { 
   top: calc(50% - 200px); 
@@ -91,7 +123,6 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
   z-index: 50; 
 }
 
-
 #history-list li { 
   font-size: 13px; 
   text-align: left; 
@@ -112,6 +143,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 .door-time { margin-left: 6px; color: #aaa; }
 
 .progress-wrap { margin-bottom: 12px; }
+
 #door-progress { width: 100%; height: 10px; background: #222; border-radius: 6px; overflow: hidden; margin: 8px 0 12px; }
 #door-progress-bar { height: 100%; width: 0%; background: #2ecc71; transition: width 0.25s ease; }
 #door-progress-text { font-size: 13px; color: #bbb; }
@@ -131,7 +163,9 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
       </div>
     </div>
 
-    <div id="color-selector" class="color-selector-row">
+    
+
+      <div id="color-selector" class="color-selector-row hidden">
       <label for="userColor">Choose your colour:</label>
       <select id="userColor" style="height:30px;">
         <option value="green">Green</option>
@@ -180,7 +214,6 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
   </div>
 
   <div id="notifications-container"></div>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -245,11 +278,13 @@ function setLobbyLocked(locked){
 function createRoom() {
   if (roomCode) { alert("Leave current room first."); return; }
   username = document.getElementById("username").value.trim();
-  if (username.length < 3 || username.length > 20) { alert("Username 3-20 chars"); return; }
-  if (!isEnglishOnly(username, true)) {
-  alert("Username must contain only English letters and numbers.");
+ 
+  username = document.getElementById("username").value.trim();
+  if (!isUsernameValid(username)) { 
+  alert("Username must be 3-20 characters long and cannot contain unusual symbols.");
   return;
   }
+
   roomCode = Math.random().toString(36).substring(2,7).toUpperCase();
   
   
@@ -283,20 +318,24 @@ function createRoom() {
 }
 
 function joinRoomInput() {
-  if(roomCode){ alert("Leave current room first."); return; }
-  username = document.getElementById("username").value.trim();
-  if(username.length<3 || username.length>20){ alert("Username 3-20 chars"); return; }
-  const input = document.getElementById("joinCode").value.trim().toUpperCase();
-  if(!input){ alert("Enter room code"); return; }
-  if (!isEnglishOnly(username, true)) {
-    alert("Username must contain only English letters and numbers.");
-    return;
-  }  
-  if (!isEnglishOnly(input, false)) {
-    alert("Room code can only consist of English letters and numbers.");
-    return;
-  }
-  joinRoom(input);
+    if (roomCode) { alert("Leave current room first."); return; }
+    
+    username = document.getElementById("username").value.trim();
+    if (!isUsernameValid(username)) {
+        alert("Username must be 3-20 characters long and cannot contain unusual symbols.");
+        return; // Stops if the username is invalid
+    }  
+    
+    const input = document.getElementById("joinCode").value.trim().toUpperCase();
+    if (!input) { alert("Enter room code"); return; }
+    
+    // Check Room Code validity using the same function, but with a specific alert
+    if (!isUsernameValid(input)) {
+        alert("The room code must be 3-20 characters and contain only letters/numbers.");
+        return; // Stops if the room code is invalid
+    }
+
+    joinRoom(input);
 }
 
 function joinRoom(code){
@@ -327,6 +366,7 @@ function joinRoom(code){
       document.getElementById("floor-buttons").classList.remove("hidden");
       document.getElementById("door-card").classList.remove("hidden");
       document.getElementById("history-card").classList.remove("hidden");
+      document.getElementById("color-selector").classList.remove("hidden");
       document.getElementById("input-row").classList.add("hidden");
       currentFloor = 1;
 
@@ -424,86 +464,135 @@ function joinRoom(code){
     });
   });
 }
-  
+
+
+function optimisticToggleUI(doorId, newState, isRollback = false) {
+    const selector = isRollback ? `[data-door-id="${doorId}"]` : "";
+    const mapIcon = document.querySelector(`.door-icon${selector}[data-door-id="${doorId}"]`);
+    const listItem = document.querySelector(`#door-list li[data-door-id="${doorId}"]`);
+
+    if (mapIcon) {
+        mapIcon.classList.toggle("opened", newState);
+    }
+
+    if (listItem) {
+        listItem.classList.toggle("door-opened", newState);
+        listItem.classList.toggle("door-closed", !newState);
+    }
+}
+
+
+
 function renderDoors(){
-  const container = document.querySelector(".map-container");
-  if(!container || !roomCode) return;
-  document.querySelectorAll(".door-icon").forEach(el=>el.remove());
-  DOORS.forEach(d=>{
-    const btn = document.createElement("button");
-    btn.classList.add("door-icon");
-    const state = doorsState[d.id]||{opened:false};
-    if(state.opened) btn.classList.add("opened");
-    btn.style.top=d.top; btn.style.left=d.left;
-    btn.setAttribute("data-label", d.label);
-    btn.style.display=d.floor===currentFloor?"block":"none";
-    btn.onclick=()=>{
-      if(!roomCode) return;
-      const newOpened = !btn.classList.contains("opened");
-      btn.classList.toggle("opened", newOpened);
-      
-      db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ 
-          opened: newOpened, 
-          by: userUID, 
-          at: Date.now() 
-      }).catch(e => {
-          console.error("Permission denied");
-          btn.classList.toggle("opened", !newOpened);
-      });
-      
-      logHistory({type:"door", by:userUID, text:`${newOpened?"opened":"closed"} ${d.label}`});
-    };
-    container.appendChild(btn);
-  });
+    const container = document.querySelector(".map-container");
+    if(!container || !roomCode) return; 
+    
+    // Cleanup existing icons
+    document.querySelectorAll(".door-icon").forEach(el=>el.remove()); 
+
+    DOORS.forEach(d=>{
+        const btn = document.createElement("button");
+        btn.classList.add("door-icon");
+        
+        const state = doorsState[d.id]||{opened:false};
+        if(state.opened) btn.classList.add("opened");
+        
+        // Add ID attribute for targeted UI updates
+        btn.setAttribute("data-door-id", d.id); 
+        btn.setAttribute("data-label", d.label);
+        
+        btn.style.top=d.top; btn.style.left=d.left;
+        btn.style.display=d.floor===currentFloor?"block":"none";
+        
+        btn.onclick=()=>{
+            if(!roomCode) return;
+            const newOpened = !btn.classList.contains("opened");
+            
+            // 1. OPTIMISTIC UI: Update both the map icon and checklist immediately
+            optimisticToggleUI(d.id, newOpened);
+
+            db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ 
+                opened: newOpened, 
+                by: userUID, 
+                at: Date.now() 
+            })
+            .then(() => {
+                // 2. LOG: Only if write succeeds
+                logHistory({type:"door", by:userUID, text:`${newOpened?"opened":"closed"} ${d.label}`});
+            })
+            .catch(e => {
+                console.error("Permission denied or database write failed:", e);
+                // 3. ROLLBACK: Revert both the map icon and checklist on failure
+                optimisticToggleUI(d.id, !newOpened, true); // Pass true for rollback
+                alert("Action failed. Check console for details.");
+            });
+        };
+        container.appendChild(btn);
+    });
 }
 
 function renderDoorList(){
-  if(!roomCode) return;
-  const list = document.getElementById("door-list");
-  const text = document.getElementById("door-progress-text");
-  const bar = document.getElementById("door-progress-bar");
-  list.innerHTML=""; let openedCount=0;
-  const sortedDoors=[...DOORS].sort((a,b)=>b.floor-a.floor);
-  sortedDoors.forEach(door=>{
-    const state=doorsState[door.id]; if(!state) return;
-    if(state.opened) openedCount++;
-    const li=document.createElement("li");
-    li.style.cursor="pointer"; li.style.margin="6px 0"; li.style.padding="6px 10px"; li.style.borderRadius="6px";
+    if(!roomCode) return;
+    const list = document.getElementById("door-list");
+    const text = document.getElementById("door-progress-text");
+    const bar = document.getElementById("door-progress-bar");
+    list.innerHTML=""; let openedCount=0;
     
-    li.classList.add(state.opened?"door-opened":"door-closed");
+    const sortedDoors=[...DOORS].sort((a,b)=>b.floor-a.floor);
     
-    const user = usersCache[state.by];
-    const name = user?.name||"Unknown";
-    const color = user?.color||"#fff";
-    const openedAt = state.at ? new Date(state.at).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : "";
-    li.innerHTML=`<div class="door-title">${door.label} (${door.floor===2?"2F":"1F"})</div>
-      ${state.opened?`<div class="door-meta">opened by <span style="color:${color}; font-weight:bold;">${name}</span><span class="door-time">${openedAt}</span></div>`:""}`;
+    sortedDoors.forEach(door=>{
+        const state=doorsState[door.id]; 
+        if(!state) return;
+        
+        if(state.opened) openedCount++;
+        
+        const li=document.createElement("li");
+        li.style.cursor="pointer"; 
+        li.style.margin="6px 0"; 
+        li.style.padding="6px 10px"; 
+        li.style.borderRadius="6px";
+        
+        li.classList.add(state.opened?"door-opened":"door-closed");
+        li.setAttribute("data-door-id", door.id); // Add ID attribute
+        
+        const user = usersCache[state.by];
+        const name = user?.name||"Unknown";
+        const color = user?.color||"#fff";
+        const openedAt = state.at ? new Date(state.at).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : "";
+        
+        li.innerHTML=`<div class="door-title">${door.label} (${door.floor===2?"2F":"1F"})</div>
+            ${state.opened?`<div class="door-meta">opened by <span style="color:${color}; font-weight:bold;">${name}</span><span class="door-time">${openedAt}</span></div>`:""}`;
+        
+        li.onclick=()=>{ 
+            const newState=!state.opened;
+            
+            // 1. OPTIMISTIC UI: Update both the checklist item and map icon immediately
+            optimisticToggleUI(door.id, newState);
+
+            db.ref(`rooms/${roomCode}/doors/${door.id}`).set({ 
+                opened:newState, 
+                by:userUID, 
+                at:Date.now() 
+            })
+            .then(() => {
+                // 2. LOG: Only if write succeeds
+                logHistory({type:"door", by:userUID, text:`${newState?"opened":"closed"} ${door.label}`});
+            })
+            .catch(e => {
+                console.error("Permission denied for checklist update: ", e);
+                // 3. ROLLBACK: Revert both the checklist item and map icon on failure
+                optimisticToggleUI(door.id, !newState, true); // Pass true for rollback
+                alert("Action failed. Check console for details.");
+            });
+        };
+        
+        list.appendChild(li);
+    });
     
-    // START OF CRITICAL CORRECTION
-    li.onclick=()=>{ 
-      const newState=!state.opened;
-      
-      
-      
-      db.ref(`rooms/${roomCode}/doors/${door.id}`).set({ 
-          opened:newState, 
-          by:userUID, 
-          at:Date.now() 
-      }).catch(e => {
-       
-        console.error("Permission denied for checklist update: ", e);
-      });
-      
-      logHistory({type:"door", by:userUID, text:`${newState?"opened":"closed"} ${door.label}`});
-    };
-    
-    
-    list.appendChild(li);
-  });
-  const total=DOORS.length;
-  const percent=total?Math.round((openedCount/total)*100):0;
-  text.innerText=`${openedCount} / ${total} opened`;
-  bar.style.width=percent+"%";
+    const total=DOORS.length;
+    const percent=total?Math.round((openedCount/total)*100):0;
+    text.innerText=`${openedCount} / ${total} opened`;
+    bar.style.width=percent+"%";
 }
 
 function switchFloor(floor){
@@ -512,7 +601,8 @@ function switchFloor(floor){
   document.querySelectorAll(".floor-btn").forEach(btn=>btn.classList.remove("active"));
   document.querySelector(`.floor-btn[data-floor='${floor}']`).classList.add("active");
   document.querySelectorAll(".door-icon").forEach(btn=>{
-    const door = DOORS.find(d=>d.label===btn.getAttribute("data-label"));
+    const doorId = btn.getAttribute("data-door-id");
+    const door = DOORS.find(d => d.id === doorId); 
     btn.style.display = door && door.floor===floor?"block":"none";
   });
 }
@@ -534,11 +624,19 @@ function resetDoors(){
 }
 
 function deleteRoom(){
-  if(!roomCode || !confirm("Are you sure you want to delete the room?")) return;
-  const roomRef = db.ref(`rooms/${roomCode}`);
-  roomRef.update({ deleting:true, deletedBy:userUID, deletedAt:Date.now() });
-  logHistory({type:"delete", by:userUID, text:"deleted the room"});
-  setTimeout(()=>roomRef.remove(),1200);
+  if(!roomCode || !confirm("Are you sure you want to delete the room? This cannot be undone.")) return;
+  const historyRef = db.ref(`rooms/${roomCode}/history`);
+  historyRef.push({
+      type: "delete", 
+      by: userUID, 
+      text: "deleted the room", 
+      at: Date.now()
+  }).then(() => {
+      return db.ref(`rooms/${roomCode}`).remove();
+  }).catch(err => {
+      console.error("Deletion failed:", err);
+      alert("You could not delete the room. Are you still a member?");
+  });
 }
 
 function leaveRoom(){
@@ -562,6 +660,7 @@ function cleanupRoomState(){
   document.getElementById("users-list").classList.add("hidden");
   document.getElementById("door-card").classList.add("hidden");
   document.getElementById("history-card").classList.add("hidden");
+  document.getElementById("color-selector").classList.add("hidden");
   document.getElementById("history-list").innerHTML="";
   document.getElementById("input-row").classList.remove("hidden");
   document.querySelectorAll(".door-icon").forEach(btn=>btn.remove());
@@ -587,11 +686,23 @@ function showNotification(html){
   setTimeout(()=>{ notif.style.opacity="0"; setTimeout(()=>container.removeChild(notif),500); },3000);
 }
 
-function isEnglishOnly(str, allowSpaces = true) {
-  return allowSpaces
-    ? /^[A-Za-z0-9 ]+$/.test(str)
-    : /^[A-Za-z0-9]+$/.test(str);
+function isUsernameValid(str) {
+    const minLength = 3;
+    const maxLength = 20;
+
+    if (str.length < minLength || str.length > maxLength) {
+        return false;
+    }
+    
+    const illegalChars = /[\p{C}]/u;
+    if (illegalChars.test(str)) {
+        return false;
+    }
+
+    const allowedPattern = /^[ \p{L}\p{N}_.-]+$/u;
+    return allowedPattern.test(str);
 }
+
 </script>
 </div>
 </body>
