@@ -287,6 +287,9 @@ function createRoom() {
         alert("Action denied: You are banned from this service.");
         return;
     }
+
+checkStaleRooms(); 
+
   if (roomCode) { alert("Leave current room first."); return; }
   username = document.getElementById("username").value.trim();
   username = document.getElementById("username").value.trim();
@@ -333,7 +336,9 @@ function joinRoomInput() {
         alert("Action denied: You are banned from this service.");
         return;
     }
-    
+
+checkStaleRooms();
+
     if (roomCode) { alert("Leave current room first."); return; }
     
     username = document.getElementById("username").value.trim();
@@ -691,6 +696,50 @@ function cleanupRoomState(){
 function logHistory(entry){
   if(!roomCode) return;
   db.ref(`rooms/${roomCode}/history`).push({...entry, at:Date.now()});
+}
+
+// Function to clean up expired or truly empty rooms (runs on client activity)
+function checkStaleRooms() {
+    console.log("Starting client-side stale room cleanup...");
+    const roomsRef = db.ref("rooms");
+    const now = Date.now();
+    const batchUpdates = {};
+    let roomsDeleted = 0;
+    
+    roomsRef.once("value")
+        .then(snapshot => {
+            snapshot.forEach(roomSnapshot => {
+                const roomId = roomSnapshot.key;
+                const roomData = roomSnapshot.val();
+                
+                if (!roomData) return; 
+
+                const isExpired = roomData.expiresAt && roomData.expiresAt < now;
+                const isEmpty = !roomData.users || Object.keys(roomData.users).length === 0;
+
+                const ONE_HOUR_MS = 600000; 
+
+                // Criteria: the room is expired OR it is currently empty AND older than 1 hour
+                const isOldAndEmpty = isEmpty && (roomData.createdAt < (now - ONE_HOUR_MS)); 
+
+                if (isExpired || isOldAndEmpty) {
+                    batchUpdates[roomId] = null; 
+                    roomsDeleted++;
+                }
+            });
+
+            if (roomsDeleted > 0) {
+                return roomsRef.update(batchUpdates)
+                    .then(() => {
+                        console.log(`Finished cleanup. Deleted ${roomsDeleted} stale rooms.`);
+                    });
+            } else {
+                console.log("Finished cleanup. No stale rooms found.");
+            }
+        })
+        .catch(err => {
+            console.error("Client-side cleanup failed:", err);
+        });
 }
 
 function showNotification(html){
