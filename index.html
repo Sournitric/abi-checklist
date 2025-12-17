@@ -243,11 +243,21 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
 const TRUSTED_UIDS = [
     'cn3Dd5FKMQfpyRSljXCmc1R3KJU2',
     '0zyksYUKCPXJmJFrBAAWXC3MMjp2', 
-    'UID' 
+    '1hldQGHp0ORQQJdikQmqr065HiJ2',
+    '2fMd9SjS7HXYT6fqErpR2DEpVdR2',
 ];
+
+const TRUSTED_USERNAMES_UIDS = [
+  'cn3Dd5FKMQfpyRSljXCmc1R3KJU2',
+  '0zyksYUKCPXJmJFrBAAWXC3MMjp2',
+  '1hldQGHp0ORQQJdikQmqr065HiJ2',
+  '2fMd9SjS7HXYT6fqErpR2DEpVdR2',
+];
+
 
 setLobbyLocked(true);
 firebase.auth().signInAnonymously()
@@ -296,7 +306,6 @@ function createRoom() {
 checkStaleRooms(firebase.auth().currentUser, "Starting second check for stale rooms...");
 
   if (roomCode) { alert("Leave current room first."); return; }
-  username = document.getElementById("username").value.trim();
   username = document.getElementById("username").value.trim();
   if (!isUsernameValid(username)) { 
   alert("Username must be 3-20 characters long and cannot contain unusual symbols.");
@@ -761,17 +770,27 @@ function showNotification(html){
 function isUsernameValid(str) {
     const minLength = 3;
     const maxLength = 20;
+    const uidToCheck = userUID;
 
     if (str.length < minLength || str.length > maxLength) {
         return false;
     }
     
+    if (uidToCheck && TRUSTED_USERNAMES_UIDS.includes(uidToCheck)) {
+        
+        console.log(`Trusted Username UID (${uidToCheck}): Username symbol check bypassed.`);
+        
+        const illegalChars = /[\p{C}]/u; 
+        
+        return !illegalChars.test(str); 
+    }
+
     const illegalChars = /[\p{C}]/u;
     if (illegalChars.test(str)) {
         return false;
     }
 
-    const allowedPattern = /^[ \p{L}\p{N}_.-]+$/u;
+    const allowedPattern = /^[ a-zA-Z0-9_.-]+$/; 
     return allowedPattern.test(str);
 }
 
@@ -796,8 +815,6 @@ function checkBanStatus() {
         setLobbyLocked(true); 
     });
 }
-
-
 
 
 </script>
