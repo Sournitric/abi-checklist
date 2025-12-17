@@ -220,6 +220,7 @@ input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px;
 
 <script>
 let username=null, userUID=null, roomCode=null, currentFloor=1, doorsState={}, usersCache={}, timerInterval=null, roomExpiresAt=0, userColor=null;
+let isUserBanned = false;
 const COLOR_MAP={green:"#2ecc71", blue:"#3498db", yellow:"#f1c40f", purple:"#9b59b6"};
 const DOORS=[
   { id:"2f_general_office", label:"General Office", floor:2, top:"71.8834%", left:"30.855%" },
@@ -282,9 +283,12 @@ function setLobbyLocked(locked){
 }
 
 function createRoom() {
+  if (isUserBanned) {
+        alert("Action denied: You are banned from this service.");
+        return;
+    }
   if (roomCode) { alert("Leave current room first."); return; }
   username = document.getElementById("username").value.trim();
- 
   username = document.getElementById("username").value.trim();
   if (!isUsernameValid(username)) { 
   alert("Username must be 3-20 characters long and cannot contain unusual symbols.");
@@ -324,6 +328,12 @@ function createRoom() {
 }
 
 function joinRoomInput() {
+
+  if (isUserBanned) {
+        alert("Action denied: You are banned from this service.");
+        return;
+    }
+    
     if (roomCode) { alert("Leave current room first."); return; }
     
     username = document.getElementById("username").value.trim();
@@ -709,7 +719,7 @@ function isUsernameValid(str) {
     return allowedPattern.test(str);
 }
 
-// --- NEW FUNCTION: Check Ban Status for Banning Feature ---
+// --- MODIFIED FUNCTION ---
 function checkBanStatus() {
     if (!userUID) {
         setLobbyLocked(true); 
@@ -717,17 +727,18 @@ function checkBanStatus() {
     }
     db.ref(`bannedUsers/${userUID}`).once("value").then(snap => {
         if (snap.exists()) {
+            isUserBanned = true; // <-- SET GLOBAL VARIABLE
             alert("You have been banned from using this service.");
             console.error("User is banned:", userUID);
-            setLobbyLocked(true); // Keep the lobby locked permanently for the banned user
+            setLobbyLocked(true); 
         } else {
-            // User is not banned
+            isUserBanned = false; // <-- SET GLOBAL VARIABLE
             setLobbyLocked(false);
         }
     }).catch(err => {
         console.error("Failed to check ban status:", err);
         alert("A temporary error occurred during service check. Please try again.");
-        setLobbyLocked(true); // Lock as a precaution if service check fails
+        setLobbyLocked(true); 
     });
 }
 
