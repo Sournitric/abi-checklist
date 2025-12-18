@@ -422,8 +422,8 @@ function joinRoom(code){
       }
       const userRef = db.ref(`rooms/${code}/users/${userUID}`);
       if(!userColor) userColor = COLOR_MAP.green;
-      userRef.set({ name: username, color: userColor, joinedAt: Date.now() });
       userRef.onDisconnect().remove();
+      userRef.set({ name: username, color: userColor, joinedAt: Date.now() });
       roomCode = code;
 
       
@@ -701,9 +701,12 @@ function deleteRoom(){
 
 function leaveRoom(){
   if(!roomCode) return;
-  db.ref(`rooms/${roomCode}/users/${userUID}`).remove();
+  const userRef = db.ref(`rooms/${roomCode}/users/${userUID}`);
+  userRef.onDisconnect().cancel(); 
+  userRef.remove();
+  
   cleanupRoomState();
-  showNotification(`You left room <b>(${roomCode})</b>`);
+  showNotification(`You left the room.`);
 }
 
 function cleanupRoomState(){
@@ -764,7 +767,7 @@ function checkStaleRooms(user = firebase.auth().currentUser, customMessage = "St
                     const isExpired = roomData.expiresAt && roomData.expiresAt < now;
                     const isEmpty = !roomData.users || Object.keys(roomData.users).length === 0;
 
-                    const OLD_MS = 30000; 
+                    const OLD_MS = 600000; 
 
                     const isOldAndEmpty = isEmpty && (roomData.createdAt < (now - OLD_MS)); 
 
@@ -830,4 +833,3 @@ function checkBanStatus() {
 </div>
 </body>
 </html>
-
