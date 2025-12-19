@@ -1,0 +1,107 @@
+
+  * { box-sizing: border-box; }
+  body { background: #0f1115; color: #e6e6e6; font-family: Arial, sans-serif; padding: 20px; }
+  .card { max-width: 700px; background: #1b1f2a; padding: 20px; border-radius: 10px; position: absolute; left: 50%; transform: translateX(-50%); }
+  /* General button style with transition for smooth color change */
+  button, .floor-btn { 
+    padding: 8px 12px; margin: 5px 2px; border: none; border-radius: 6px; 
+    background: #345c8c; color: white; font-size: 14px; cursor: pointer;
+    transition: background 0.12s ease;
+  }
+
+  /* Universal Hover: Applies to Create, Join, Advanced, Reset, Delete, Leave, and Floor buttons */
+  button:hover, .floor-btn:hover { 
+    background: #2a4c6e; 
+  }
+
+  /* Active State: Keeps the darker color for the current floor */
+  .floor-btn.active { 
+    background: #2a4c6e; 
+    cursor: default; /* Optional: shows it's already selected */
+  }
+  .map-container { position: relative; width: 100%; margin-top: 15px; }
+  .map-image { width: 100%; display: block; }
+
+  .door-icon {
+    position: absolute; width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+    border: 2px solid white; background: rgba(255,0,0,0.55);
+    padding: 0; line-height: 28px; font-size: 0; display: inline-block; box-sizing: border-box;
+  }
+  .door-icon.opened { background: rgba(0,255,0,0.55); }
+  
+  .door-icon:hover::after {
+    content: attr(data-label); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    background: #222; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px;
+    white-space: nowrap; pointer-events: none; z-index: 10; min-width: max-content; text-align: center;
+  }
+
+  #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
+  input[type="text"] { width: calc(100% - 100px); padding: 8px; margin-right: 5px; border-radius: 6px; border: none; font-size: 14px; }
+  
+  #userColor {
+    background: #1b1f2a; color: #e6e6e6; border: 1px solid #345c8c; padding: 7px 30px 7px 7px;
+    border-radius: 6px; -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23e6e6e6'><path d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/></svg>");
+    background-repeat: no-repeat; background-position: right 8px center; background-size: 14px;
+  }
+
+  .hidden { display: none !important; }
+  .input-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+  .input-row input { flex: 0 0 150px; }
+  .action-buttons { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+  .action-buttons button { flex: 0 0 auto; min-width: 90px; }
+  .color-selector-row { margin-top:10px; }
+  .page-layout { position: relative; width: 100%; min-height: 100vh; }
+  .side-card { width: 260px; background: #141822; border-radius: 10px; padding: 15px; position: absolute; }
+  
+  #door-card { top: calc(50% - 200px); left: calc(50% - 650px); }
+  #history-card { 
+    top: calc(50% - 200px); right: calc(50% - 650px); display: inline-block;
+    width: 260px; min-width: 260px; max-width: 90vw; background: #141822;
+    border-radius: 10px; padding: 15px; max-height: 400px; overflow-y: hidden;
+    white-space: normal; overflow-wrap: break-word; z-index: 50;
+  }
+
+  #history-list { list-style: none; padding: 0; margin: 0; }
+  #history-list li { font-size: 13px; text-align: left; margin: 0 0 6px; white-space: normal; word-break: break-word; }
+  #history-card h3 { text-align: left; margin-top: 0; margin-bottom: 10px; flex-shrink: 0; }
+
+  #door-list li { transition: background 0.25s ease; cursor: pointer; margin: 6px 0; padding: 6px 10px; border-radius: 6px; }
+  #door-list li.door-opened { background: rgba(46,204,113,0.25); }
+  #door-list li.door-closed { background: rgba(231,76,60,0.25); }
+  .door-title { font-weight: bold; }
+  .door-meta { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+  .door-time { margin-left: 6px; color: #aaa; }
+  .progress-wrap { margin-bottom: 12px; }
+  #door-progress { width: 100%; height: 10px; background: #222; border-radius: 6px; overflow: hidden; margin: 8px 0 12px; }
+  #door-progress-bar { height: 100%; width: 0%; background: #2ecc71; transition: width 0.25s ease; }
+  #door-progress-text { font-size: 13px; color: #bbb; }
+  #door-list { list-style: none; padding: 0; margin: 0; }
+
+.copy-btn {
+    margin: 0 0 0 8px;
+    padding: 4px 8px;
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+  }
+  /* The background and hover are now handled by the general 'button' rule */
+  .copy-btn svg { fill: white; width: 16px; height: 16px; pointer-events: none; }
+
+  /* Floating Text Animation */
+  .copy-popup {
+    position: absolute;
+    color: #3498db; /* Theme-consistent blue */
+    font-size: 11px;
+    font-weight: bold;
+    pointer-events: none;
+    animation: floatUpFade 1s forwards;
+    white-space: nowrap;
+    text-shadow: 0 0 4px rgba(0,0,0,0.5); /* Helps visibility against background */
+  }
+
+  @keyframes floatUpFade {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
+  
