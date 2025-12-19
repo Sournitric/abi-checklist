@@ -120,7 +120,7 @@ button:not(.door-icon):hover,
 /* --- Copy Button --- */
 .copy-btn {
   margin: 0 0 0 8px;
-  padding:  4px 12px !important; 
+  padding:  5px 11px !important; 
   min-width: 0 !important;      
   background: #345c8c;
   border: none;
@@ -133,8 +133,8 @@ button:not(.door-icon):hover,
 
 .copy-btn svg { 
   fill: white; 
-  width: 14px; 
-  height: 14px; 
+  width: 15px; 
+  height: 15px; 
   pointer-events: none; 
 }
 
