@@ -109,7 +109,7 @@ function copyRoomCode() {
     popup.style.left = (btn.offsetLeft + (btn.offsetWidth / 2) - 20) + "px";
     popup.style.top = (btn.offsetTop - 15) + "px";
 
-    setTimeout(() => popup.remove(), 1000);
+    setTimeout(() => popup.remove(), 2000);
   });
 }
 
@@ -320,32 +320,30 @@ function renderDoors(){
         if(state.opened) btn.classList.add("opened");
         
         btn.setAttribute("data-door-id", d.id); 
-        btn.setAttribute("data-label", d.label);
-        btn.style.top=d.top; btn.style.left=d.left;
+        btn.setAttribute("data-label", d.label); 
+        
+        // FIX: Remove title to prevent the double-text/messy overlap
+        btn.removeAttribute("title"); 
+        
+        btn.style.top=d.top; 
+        btn.style.left=d.left;
         btn.style.display=d.floor===currentFloor?"block":"none";
         
         btn.onclick=()=>{
             if(!roomCode) return;
             const newOpened = !btn.classList.contains("opened");
-            
-            // 1. Optimistic Update
             optimisticToggleUI(d.id, newOpened);
-
-            // 2. Database Write
             db.ref(`rooms/${roomCode}/doors/${d.id}`).set({ 
                 opened: newOpened, 
                 by: userUID, 
                 at: Date.now() 
             })
             .then(() => {
-                // 3. Log History ONLY on success
                 logHistory({type:"door", by:userUID, text:`${newOpened?"opened":"closed"} ${d.label}`});
             })
             .catch(e => {
-                // 4. Rollback UI on failure
-                console.error("Permission denied or database write failed:", e);
+                console.error("Write failed:", e);
                 optimisticToggleUI(d.id, !newOpened, true);
-                alert("Action failed. Check console for details.");
             });
         };
         container.appendChild(btn);
