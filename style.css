@@ -1,4 +1,3 @@
-/* --- Global Styles --- */
 * { box-sizing: border-box; }
 
 body { 
@@ -20,7 +19,7 @@ body {
 
 .hidden { display: none !important; }
 
-/* --- BUTTON SIZING --- */
+
 button:not(.door-icon):not(.copy-btn), .floor-btn { 
   padding: 8px 12px; 
   min-width: 75px; 
@@ -45,7 +44,7 @@ button:not(.door-icon):hover,
   cursor: default; 
 }
 
-/* --- Map & Door Icons --- */
+
 .map-container { 
   position: relative; 
   width: 100%; 
@@ -89,35 +88,35 @@ button:not(.door-icon):hover,
   left: 50%; 
   transform: translateX(-50%);
   
-  /* Background & Border */
-  background: #222;       /* Lighter Gray (RGB 34, 34, 34) */
+
+  background: #222;
   color: white; 
   
-  /* SIZING */
+
   padding: 7px 13px; 
   min-width: max-content; 
   line-height: 1;
   
-  /* Text Styling */
+
   font-family: Arial, sans-serif;
   font-size: 12px; 
-  font-weight: normal;    /* Lighter text (not bold) */
+  font-weight: normal;
   text-align: center;
   border-radius: 4px;
   white-space: nowrap; 
   
-  /* Alignment & Behavior */
+
   display: block;
   pointer-events: none; 
   z-index: 101;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   
-  /* Instant Appearance */
+
   transition: none !important;
   animation: none !important;
 }
 
-/* --- Copy Button --- */
+
 .copy-btn {
   margin: 0 0 0 8px;
   padding:  5px 11px !important; 
@@ -153,7 +152,7 @@ button:not(.door-icon):hover,
   100% { opacity: 0; transform: translateY(-20px); }
 }
 
-/* --- Layout & Controls (FIXED SHORT INPUTS) --- */
+
 .input-row { 
   display: flex; 
   flex-wrap: wrap; 
@@ -162,7 +161,6 @@ button:not(.door-icon):hover,
   margin-top: 10px; 
 }
 
-/* Force the input boxes to stay short */
 .input-row input[type="text"] { 
   width: 150px !important; 
   flex: 0 0 150px !important; 
@@ -197,7 +195,7 @@ button:not(.door-icon):hover,
   background-size: 14px;
 }
 
-/* --- Sidebar Cards --- */
+
 .page-layout { position: relative; width: 100%; min-height: 100vh; }
 .side-card { 
   width: 260px; 
@@ -236,7 +234,7 @@ button:not(.door-icon):hover,
 .door-meta { font-size: 11px; opacity: 0.8; margin-top: 2px; }
 .door-time { margin-left: 6px; color: #aaa; }
 
-/* --- Progress Bar --- */
+
 .progress-wrap { margin-bottom: 12px; }
 #door-progress { 
   width: 100%; 
@@ -255,3 +253,4 @@ button:not(.door-icon):hover,
 #door-progress-text { font-size: 13px; color: #bbb; }
 
 #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
+
