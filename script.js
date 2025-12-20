@@ -590,9 +590,9 @@ function switchFloor(floorId){
     }
   });
 }
-
 function deleteRoom(){
-  if(!roomCode || !confirm("Are you sure you want to delete the room? This cannot be undone.")) return;
+  if(!roomCode) return;
+  closeModal("delete-room-modal");
   const historyRef = db.ref(`rooms/${roomCode}/history`);
   historyRef.push({
       type: "delete", 
@@ -606,9 +606,9 @@ function deleteRoom(){
       alert("You could not delete the room. Are you still a member?");
   });
 }
-
 function leaveRoom(){
   if(!roomCode) return;
+  closeModal("leave-room-modal");
   const userRef = db.ref(`rooms/${roomCode}/users/${userUID}`);
   userRef.onDisconnect().cancel(); 
   userRef.remove();
@@ -616,7 +616,6 @@ function leaveRoom(){
   cleanupRoomState();
   showNotification(`You left the room.`);
 }
-
 function cleanupRoomState(){
   if(timerInterval) clearInterval(timerInterval);
   if(armoryInterval) clearInterval(armoryInterval);
@@ -746,3 +745,35 @@ function resetLevers() {
     })
     .catch(e => console.error("Reset levers failed:", e));
 }
+
+function resetdoors() {
+  Object.keys(doorsState).forEach(id => {
+    db.ref(`rooms/${roomCode}/doors/${id}`).set({
+      opened: false,
+      by: userUID,
+      at: Date.now()
+    });
+  });
+
+  logHistory({
+    type: "reset",
+    by: userUID,
+    text: "reset all doors"
+  });
+};
+
+document.querySelectorAll(".modal-backdrop, .modal-close").forEach(el => {
+  el.addEventListener("click", e => {
+    const modal = e.target.closest(".modal");
+    if (modal) modal.classList.add("hidden");
+  });
+});
+
+function openModal(id) {
+  document.getElementById(id)?.classList.remove("hidden");
+}
+
+function closeModal(id) {
+  document.getElementById(id)?.classList.add("hidden");
+}
+

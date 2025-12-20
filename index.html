@@ -41,9 +41,9 @@
       </div><br>
       Map: <span id="current-map-name" style="font-weight:bold; color:#aaa;">-</span><br>
       Time left: <span id="room-timer">--:--</span><br>
-      <button id="reset-btn" style="margin-top:5px;">Reset Doors</button>
-      <button id="delete-btn" style="margin-top:5px; margin-left:5px;">Delete Room</button>
-      <button id="leave-btn" style="margin-top:5px; margin-left:5px;">Leave Room</button>
+      <button id="reset-btn" style="margin-top:5px;"onclick="resetdoors()" >Reset Doors</button>
+      <button id="delete-btn" style="margin-top:5px; margin-left:5px;" onclick="openModal('delete-room-modal')">Delete Room</button>
+      <button id="leave-btn" style="margin-top:5px; margin-left:5px;" onclick="openModal('leave-room-modal')">Leave Room</button>
     </div>
 
     <div id="users-list" class="hidden" style="margin-top:10px;"></div>
@@ -106,11 +106,123 @@
     </div>
   </div>
 </div>
+</div>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="script.js"></script>
+
+
+<div id="join-modal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('join-modal')"></div>
+
+  <div class="modal-card">
+    <div class="modal-header">
+      <span>Join Raid Room</span>
+      <button class="modal-close" onclick="closeModal('join-modal')">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <label for="modalJoinCode">Room Code</label>
+      <input
+        type="text"
+        id="modalJoinCode"
+        placeholder="Enter room code"
+        maxlength="12"
+      >
+    </div>
+
+    <div class="modal-footer">
+      <button onclick="confirmJoinRoom()">Join</button>
+      <button onclick="closeModal('join-modal')">Cancel</button>
+    </div>
+  </div>
 </div>
+
+
+<div id="delete-room-modal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('delete-room-modal')"></div>
+
+  <div class="modal-card">
+    <div class="modal-header warning">
+      <span>Delete Room</span>
+      <button class="modal-close" onclick="closeModal('delete-room-modal')">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p>
+        This will <b>permanently delete</b> the room for all users.
+        <br><br>
+        <span style="color:#ff9f43">
+          This action cannot be undone.
+        </span>
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('delete-room-modal')">Cancel</button>
+      <button class="btn-danger" onclick="deleteRoom()">
+        Delete Room
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="reset-doors-modal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('reset-doors-modal')"></div>
+
+  <div class="modal-card">
+    <div class="modal-header warning">
+      <span>Reset Doors</span>
+      <button class="modal-close" onclick="closeModal('reset-doors-modal')">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p>
+        This will mark <b>all doors as closed</b> for everyone in the room.
+        <br><br>
+        Are you sure you want to continue?
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('reset-doors-modal')">Cancel</button>
+      <button class="btn-warning" onclick="resetdoors()">
+        Reset Doors
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="leave-room-modal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('leave-room-modal')"></div>
+
+  <div class="modal-card">
+    <div class="modal-header warning">
+      <span>Leave Room</span>
+      <button class="modal-close" onclick="closeModal('leave-room-modal')">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p>
+        Are you sure you want to leave this room?<br>
+        <b>You will stop seeing door updates.</b>
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('leave-room-modal')">Cancel</button>
+      <button
+        class="btn-danger"
+        onclick=""
+      >
+        Leave Room
+      </button>
+    </div>
+  </div>
+</div>
+
+
 </body>
 </html>
