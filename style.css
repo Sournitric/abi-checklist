@@ -347,3 +347,11 @@ body.armory-active #history-card {
 #reset-levers-btn:hover {
     background: #2a4c6e; 
 }
+
+#confirm-map-btn:hover {
+    background: #2a4c6e !important;
+}
+
+#cancel-map-btn:hover {
+    background: #555 !important;
+}
