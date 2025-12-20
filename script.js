@@ -91,7 +91,6 @@ colorSelect.addEventListener("change",()=>updateUserColor(colorSelect.value));
 advancedBtn.addEventListener("click",()=>{advancedInput.style.display = advancedInput.style.display==="none"?"inline-block":"none";});
 advancedInput.addEventListener("change",()=>{const val=advancedInput.value.trim(); if(/^#([0-9A-Fa-f]{6})$/.test(val)) updateUserColor(val); else alert("Invalid hex code");});
 
-/* --- UI HELPERS --- */
 function isUsernameValid(str) {
     const maxLength = 20; 
     const uidToCheck = userUID;
@@ -134,7 +133,6 @@ function copyRoomCode() {
   });
 }
 
-// --- MAP SELECTION LOGIC ---
 document.getElementById("createBtn").addEventListener("click", showMapModal);
 document.getElementById("joinBtn").addEventListener("click", joinRoomInput);
 document.getElementById("copy-room-btn").addEventListener("click", copyRoomCode);
@@ -158,11 +156,9 @@ function showMapModal() {
         return;
     }
 
-    // Populate Dropdown
     const dropdown = document.getElementById("map-select-dropdown");
     dropdown.innerHTML = "";
 
-    // Define your desired order here using the IDs from MAP_LIBRARY
     const preferredOrder = ["tv_station", "Armory"];
 
     preferredOrder.forEach(key => {
@@ -174,7 +170,6 @@ function showMapModal() {
         }
     });
 
-    // Add any maps that might not be in the preferredOrder list at the end
     Object.keys(MAP_LIBRARY).forEach(key => {
         if (!preferredOrder.includes(key)) {
             const option = document.createElement("option");
@@ -193,7 +188,6 @@ function startRoomCreation(mapId) {
     
     roomCode = Math.random().toString(36).substring(2,7).toUpperCase();
     
-    // Load config for selected map
     const mapConfig = MAP_LIBRARY[mapId];
     if (!mapConfig) { alert("Invalid map selected"); return; }
     
@@ -210,7 +204,7 @@ function startRoomCreation(mapId) {
     const roomData = { 
         createdAt: Date.now(), 
         expiresAt: Date.now() + 4*60*60*1000, 
-        mapId: mapId, // SAVE THE MAP ID
+        mapId: mapId,
         doors: doors,
         users: initialUser 
     };
@@ -253,17 +247,14 @@ function loadMapConfiguration(mapId) {
     activeMapConfig = MAP_LIBRARY[mapId];
     activeDoorsList = activeMapConfig.doors;
     
-    // Toggle the Armory-specific layout class
     if (mapId === "Armory") {
         document.body.classList.add("armory-active");
     } else {
         document.body.classList.remove("armory-active");
     }
     
-    // Set map name in UI
     document.getElementById("current-map-name").innerText = activeMapConfig.name;
 
-    // Generate Floor Buttons
     const btnContainer = document.getElementById("floor-buttons");
     btnContainer.innerHTML = "";
     
@@ -317,7 +308,6 @@ function joinRoom(code) {
       document.getElementById("color-selector").classList.remove("hidden");
       document.getElementById("input-row").classList.add("hidden");
 
-      // --- Armory Status Logic ---
       const armoryCard = document.getElementById("armory-status-card");
       if (mapId === "Armory") {
         armoryCard.classList.remove("hidden");
@@ -337,14 +327,12 @@ function joinRoom(code) {
                 item.classList.add("active-lever");
                 const elapsedTotal = Math.floor((Date.now() - data.at) / 1000);
                 
-                // Format seconds into minutes and seconds
                 const mins = Math.floor(elapsedTotal / 60);
                 const secs = elapsedTotal % 60;
                 const timeString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 
                 const user = usersCache[data.by] || { name: "Unknown", color: "#fff" };
                 
-                // (OPEN) text removed here
                 timerText.innerHTML = `<span style="color:${user.color}">${user.name}</span> pulled ${timeString} ago`;
             } else {
                 item.classList.remove("active-lever");
@@ -368,7 +356,6 @@ document.querySelectorAll(".armory-item").forEach(item => {
             by: !currentlyActive ? userUID : null
         });
 
-        // UPDATED: "pulled the [Name] lever"
         logHistory({
             type: "armory",
             by: userUID,
@@ -380,7 +367,6 @@ document.querySelectorAll(".armory-item").forEach(item => {
         armoryCard.classList.add("hidden");
       }
 
-      // Existing user listing logic
       let previousUsers = {};
       usersRef.on("value", snap => {
         const users = snap.val() || {};
@@ -420,7 +406,6 @@ document.querySelectorAll(".armory-item").forEach(item => {
             const name = userObj?.name || "Unknown";
             const color = userObj?.color || "#fff";
             const door = activeDoorsList.find(d => d.id === doorId);
-            // UPDATED: Notification phrasing
             if (door) showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> pulled ${door.label} lever`);
           }
         });
@@ -525,7 +510,6 @@ function renderDoorList() {
   list.innerHTML = "";
   let openedCount = 0;
 
-  // --- SORTING LOGIC ---
   const sortedDoors = [...activeDoorsList].sort((a, b) => a.floor - b.floor);
 
   sortedDoors.forEach(door => {
@@ -543,7 +527,6 @@ function renderDoorList() {
     const color = user?.color || "#fff";
     const openedAt = state.at ? new Date(state.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
 
-    // Floor Label Logic
     const floorObj = activeMapConfig.floors.find(f => f.id === door.floor);
     const floorName = floorObj ? floorObj.name : "";
 
@@ -584,10 +567,9 @@ function renderDoorList() {
 
   const total = activeDoorsList.length;
   const percent = total ? Math.round((openedCount / total) * 100) : 0;
-  text.innerText = `${openedCount} / ${total} pulled`; // Changed 'opened' to 'pulled'
+  text.innerText = `${openedCount} / ${total} pulled`;
   bar.style.width = percent + "%";
 
-  // --- DYNAMIC POSITIONING FOR ARMORY ---
   const armoryCard = document.getElementById('armory-status-card');
   const doorCard = document.getElementById('door-card');
 
@@ -779,7 +761,6 @@ function resetLevers() {
 
     db.ref(`rooms/${roomCode}/armory_status`).update(resetData)
     .then(() => {
-        // Find the current user's name from your cache
         const currentUser = usersCache[userUID];
         const name = currentUser ? currentUser.name : "Someone";
         const color = currentUser ? currentUser.color : "#fff";
@@ -790,7 +771,6 @@ function resetLevers() {
             text: "reset all levers" 
         });
 
-        // Updated Notification: "(User) reset all levers"
         showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> reset all levers`);
     })
     .catch(e => console.error("Reset levers failed:", e));
