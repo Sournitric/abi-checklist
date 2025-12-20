@@ -1,3 +1,4 @@
+/* --- Global Styles --- */
 * { box-sizing: border-box; }
 
 body { 
@@ -19,7 +20,7 @@ body {
 
 .hidden { display: none !important; }
 
-
+/* --- BUTTON SIZING --- */
 button:not(.door-icon):not(.copy-btn), .floor-btn { 
   padding: 8px 12px; 
   min-width: 75px; 
@@ -44,7 +45,7 @@ button:not(.door-icon):hover,
   cursor: default; 
 }
 
-
+/* --- Map & Door Icons --- */
 .map-container { 
   position: relative; 
   width: 100%; 
@@ -88,35 +89,35 @@ button:not(.door-icon):hover,
   left: 50%; 
   transform: translateX(-50%);
   
-
-  background: #222;
+  /* Background & Border */
+  background: #222;       /* Lighter Gray (RGB 34, 34, 34) */
   color: white; 
   
-
+  /* SIZING */
   padding: 7px 13px; 
   min-width: max-content; 
   line-height: 1;
   
-
+  /* Text Styling */
   font-family: Arial, sans-serif;
   font-size: 12px; 
-  font-weight: normal;
+  font-weight: normal;    /* Lighter text (not bold) */
   text-align: center;
   border-radius: 4px;
   white-space: nowrap; 
   
-
+  /* Alignment & Behavior */
   display: block;
   pointer-events: none; 
   z-index: 101;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   
-
+  /* Instant Appearance */
   transition: none !important;
   animation: none !important;
 }
 
-
+/* --- Copy Button --- */
 .copy-btn {
   margin: 0 0 0 8px;
   padding:  5px 11px !important; 
@@ -152,7 +153,7 @@ button:not(.door-icon):hover,
   100% { opacity: 0; transform: translateY(-20px); }
 }
 
-
+/* --- Layout & Controls (FIXED SHORT INPUTS) --- */
 .input-row { 
   display: flex; 
   flex-wrap: wrap; 
@@ -161,6 +162,7 @@ button:not(.door-icon):hover,
   margin-top: 10px; 
 }
 
+/* Force the input boxes to stay short */
 .input-row input[type="text"] { 
   width: 150px !important; 
   flex: 0 0 150px !important; 
@@ -195,8 +197,9 @@ button:not(.door-icon):hover,
   background-size: 14px;
 }
 
-
+/* --- Sidebar Cards --- */
 .page-layout { position: relative; width: 100%; min-height: 100vh; }
+
 .side-card { 
   width: 260px; 
   background: #141822; 
@@ -205,14 +208,46 @@ button:not(.door-icon):hover,
   position: absolute; 
 }
 
-#door-card { top: calc(50% - 200px); left: calc(50% - 650px); }
+/* DEFAULT: Centered (TV Station, etc.) */
+#door-card { 
+  top: calc(50% - 200px); 
+  left: calc(50% - 650px); 
+}
 
 #history-card { 
-    top: calc(50% - 200px); right: calc(50% - 650px); display: inline-block;
-    width: 260px; min-width: 260px; max-width: 90vw; background: #141822;
-    border-radius: 10px; padding: 15px; max-height: 400px; overflow-y: hidden;
-    white-space: normal; overflow-wrap: break-word; z-index: 50;
-  }
+  top: calc(50% - 200px); 
+  right: calc(50% - 650px); 
+  display: inline-block;
+  width: 260px; 
+  min-width: 260px; 
+  background: #141822;
+  border-radius: 10px; 
+  padding: 15px; 
+  max-height: 400px; 
+  overflow-y: hidden;
+  white-space: normal; 
+  overflow-wrap: break-word; 
+  z-index: 50;
+}
+
+/* ARMORY ACTIVE: Top Aligned & Smart Spaced */
+body.armory-active #door-card { 
+  top: 20px; 
+}
+
+/* This pushes the Armory card to sit 15px below the Checklist automatically */
+body.armory-active #armory-status-card { 
+  top: auto; /* Remove the fixed 400px */
+  left: calc(50% - 650px);
+  /* The JS below will handle the exact positioning, 
+     but we set a starting point here */
+  margin-top: 15px; 
+}
+
+body.armory-active #history-card { 
+  top: 20px; 
+  max-height: 850px;
+}
 
 #history-list { list-style: none; padding: 0; margin: 0; }
   #history-list li { font-size: 13px; text-align: left; margin: 0 0 6px; white-space: normal; word-break: break-word; }
@@ -234,7 +269,7 @@ button:not(.door-icon):hover,
 .door-meta { font-size: 11px; opacity: 0.8; margin-top: 2px; }
 .door-time { margin-left: 6px; color: #aaa; }
 
-
+/* --- Progress Bar --- */
 .progress-wrap { margin-bottom: 12px; }
 #door-progress { 
   width: 100%; 
@@ -254,3 +289,77 @@ button:not(.door-icon):hover,
 
 #notifications-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
 
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.8); z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-content {
+  background: #1b1f2a; padding: 20px; border-radius: 10px;
+  width: 300px; border: 0px solid #345c8c;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+.modal-content h3 { margin-top: 0; }
+
+#map-select-dropdown {
+  background: #1b1f2a; 
+  color: #e6e6e6; 
+  border: 1px solid #345c8c; 
+  padding: 7px 30px 7px 10px;
+  border-radius: 6px; 
+  appearance: none;
+  -webkit-appearance: none;
+  
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23e6e6e6'><path d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/></svg>");
+  background-repeat: no-repeat; 
+  background-position: right 8px center; 
+  background-size: 14px;
+  
+  width: 100%; 
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  cursor: pointer;
+  outline: none;
+  margin-bottom: 15px;
+}
+
+#map-select-dropdown:hover {
+  border-color: #2a4c6e;
+  background-color: #212633;
+}
+
+.armory-item {
+    background: #2a2f3a;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    border-left: 4px solid #444;
+    list-style: none;
+    transition: background 0.2s;
+}
+
+.armory-item.active-lever { 
+    border-left-color: #f1c40f; 
+    background: #323846; 
+}
+
+.armory-timer-text { 
+    font-size: 12px; 
+    margin-top: 4px; 
+    color: #ccc; 
+}
+
+.armory-item .door-title { 
+    font-size: 14px; 
+    font-weight: bold; 
+}
+
+.side-card {
+    /* Ensure side cards stack or position correctly in your layout */
+    margin-bottom: 15px;
+}
+
+#reset-levers-btn:hover {
+    background: #2a4c6e; 
+}
