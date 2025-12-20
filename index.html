@@ -10,6 +10,7 @@
 <div class="page-layout">
   <div class="card">
     <h2>Raid Door Checklist</h2>
+    
     <div id="input-row" class="input-row">
       <input type="text" id="username" placeholder="Your name" maxlength="20">
       <input type="text" id="joinCode" placeholder="Room code">
@@ -32,11 +33,13 @@
     </div>
 
     <div id="room-info" class="hidden" style="margin-top:10px;">
-     <div style="position: relative; display: inline-block;">
-  Room: <span id="room-code" style="font-weight: bold; letter-spacing: 1px;"></span><button id="copy-room-btn" class="copy-btn" title="Copy Code">
-    <svg viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" /></svg>
-  </button>
-</div><br>
+      <div style="position: relative; display: inline-block;">
+        Room: <span id="room-code" style="font-weight: bold; letter-spacing: 1px;"></span>
+        <button id="copy-room-btn" class="copy-btn" title="Copy Code">
+          <svg viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" /></svg>
+        </button>
+      </div><br>
+      Map: <span id="current-map-name" style="font-weight:bold; color:#aaa;">-</span><br>
       Time left: <span id="room-timer">--:--</span><br>
       <button id="reset-btn" style="margin-top:5px;">Reset Doors</button>
       <button id="delete-btn" style="margin-top:5px; margin-left:5px;">Delete Room</button>
@@ -44,16 +47,36 @@
     </div>
 
     <div id="users-list" class="hidden" style="margin-top:10px;"></div>
-
-    <div id="floor-buttons" class="hidden" style="margin-top:10px;">
-      <button class="floor-btn active" data-floor="1">Floor 1</button>
-      <button class="floor-btn" data-floor="2">Floor 2</button>
-    </div>
+    <div id="floor-buttons" class="hidden" style="margin-top:10px;"></div>
 
     <div class="map-container hidden">
-      <img id="map-image" class="map-image" src="floor1.png" alt="Floor Map">
+      <img id="map-image" class="map-image" src="" alt="Floor Map">
     </div>
   </div>
+
+  <div id="armory-status-card" class="side-card hidden">
+    <h3>Armory Status</h3>
+    <p style="font-size: 11px; color: #aaa; margin-bottom: 10px;">Track entry timers:</p>
+    
+    <ul id="armory-status-list">
+        <li class="armory-item" data-id="timer_140_1">
+            <div class="door-title">1m 40s Door (1)</div>
+            <div class="armory-timer-text">Ready</div>
+        </li>
+        <li class="armory-item" data-id="timer_140_2">
+            <div class="door-title">1m 40s Door (2)</div>
+            <div class="armory-timer-text">Ready</div>
+        </li>
+        <li class="armory-item" data-id="timer_60">
+            <div class="door-title">1m Door</div>
+            <div class="armory-timer-text">Ready</div>
+        </li>
+    </ul>
+
+    <div style="display: flex; justify-content: center; width: 100%; margin-top: 10px;">
+        <button id="reset-levers-btn">Reset Levers</button>
+    </div>
+</div>
 
   <div id="door-card" class="side-card hidden">
     <div class="progress-wrap">
@@ -73,10 +96,21 @@
 
   <div id="notifications-container"></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="script.js"></script>
+  <div id="map-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3>Select Map</h3>
+      <select id="map-select-dropdown" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 4px;"></select>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="cancel-map-btn" style="background: #444;">Cancel</button>
+        <button id="confirm-map-btn" style="background: #2ecc71;">Start Raid</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="script.js"></script>
 </div>
 </body>
 </html>
