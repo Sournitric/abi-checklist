@@ -276,174 +276,164 @@ function loadMapConfiguration(mapId) {
 }
 
 function joinRoom(code) {
-  const roomRef = db.ref("rooms/" + code);
-  roomRef.once("value").then(roomSnap => {
-    if (!roomSnap.exists()) { alert("Room not found"); return; }
-    const room = roomSnap.val();
-    if (Date.now() > room.expiresAt) { alert("Room expired"); return; }
+    const roomRef = db.ref("rooms/" + code);
+    roomRef.once("value").then(roomSnap => {
+        if (!roomSnap.exists()) { alert("Room not found"); return; }
+        const room = roomSnap.val();
+        if (Date.now() > room.expiresAt) { alert("Room expired"); return; }
 
-    const mapId = room.mapId || "tv_station";
-    if (!loadMapConfiguration(mapId)) return;
+        const mapId = room.mapId || "tv_station";
+        if (!loadMapConfiguration(mapId)) return;
 
-    const usersRef = db.ref(`rooms/${code}/users`);
-    usersRef.once("value").then(snap => {
-      const users = snap.val() || {};
-      if (Object.entries(users).some(([uid, u]) => uid !== userUID && u.name === username)) {
-        alert("Name taken");
-        return;
-      }
-      const userRef = db.ref(`rooms/${code}/users/${userUID}`);
-      if (!userColor) userColor = COLOR_MAP.green;
-      userRef.onDisconnect().remove();
-      userRef.set({ name: username, color: userColor, joinedAt: Date.now() });
-      roomCode = code;
-
-      document.getElementById("room-code").innerText = code;
-      document.getElementById("room-info").classList.remove("hidden");
-      document.getElementById("users-list").classList.remove("hidden");
-      document.querySelector(".map-container").classList.remove("hidden");
-      document.getElementById("floor-buttons").classList.remove("hidden");
-      document.getElementById("door-card").classList.remove("hidden");
-      document.getElementById("history-card").classList.remove("hidden");
-      document.getElementById("color-selector").classList.remove("hidden");
-      document.getElementById("input-row").classList.add("hidden");
-
-      const armoryCard = document.getElementById("armory-status-card");
-      if (mapId === "Armory") {
-        armoryCard.classList.remove("hidden");
-        const armoryRef = db.ref(`rooms/${code}/armory_status`);
-
-  armoryRef.on("value", armorySnap => {
-    const status = armorySnap.val() || {};
-    if (armoryInterval) clearInterval(armoryInterval);
-
-    const updateTick = () => {
-        document.querySelectorAll(".armory-item").forEach(item => {
-            const id = item.getAttribute("data-id");
-            const data = status[id];
-            const timerText = item.querySelector(".armory-timer-text");
-
-            if (data && data.active) {
-                item.classList.add("active-lever");
-                const elapsedTotal = Math.floor((Date.now() - data.at) / 1000);
-                
-                const mins = Math.floor(elapsedTotal / 60);
-                const secs = elapsedTotal % 60;
-                const timeString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-
-                const user = usersCache[data.by] || { name: "Unknown", color: "#fff" };
-                
-                timerText.innerHTML = `<span style="color:${user.color}">${user.name}</span> pulled ${timeString} ago`;
-            } else {
-                item.classList.remove("active-lever");
-                timerText.innerText = "Ready";
+        const usersRef = db.ref(`rooms/${code}/users`);
+        usersRef.once("value").then(snap => {
+            const users = snap.val() || {};
+            if (Object.entries(users).some(([uid, u]) => uid !== userUID && u.name === username)) {
+                alert("Name taken");
+                return;
             }
+            
+            const userRef = db.ref(`rooms/${code}/users/${userUID}`);
+            if (!userColor) userColor = COLOR_MAP.green;
+            userRef.onDisconnect().remove();
+            userRef.set({ name: username, color: userColor, joinedAt: Date.now() });
+            roomCode = code;
+
+            document.getElementById("room-code").innerText = code;
+            document.getElementById("room-info").classList.remove("hidden");
+            document.getElementById("users-list").classList.remove("hidden");
+            document.querySelector(".map-container").classList.remove("hidden");
+            document.getElementById("floor-buttons").classList.remove("hidden");
+            document.getElementById("door-card").classList.remove("hidden");
+            document.getElementById("history-card").classList.remove("hidden");
+            document.getElementById("color-selector").classList.remove("hidden");
+            document.getElementById("input-row").classList.add("hidden");
+
+            const armoryCard = document.getElementById("armory-status-card");
+            if (mapId === "Armory") {
+                armoryCard.classList.remove("hidden");
+                const armoryRef = db.ref(`rooms/${code}/armory_status`);
+
+                armoryRef.on("value", armorySnap => {
+                    const status = armorySnap.val() || {};
+                    if (armoryInterval) clearInterval(armoryInterval);
+
+                    const updateTick = () => {
+                        document.querySelectorAll(".armory-item").forEach(item => {
+                            const id = item.getAttribute("data-id");
+                            const data = status[id];
+                            const timerText = item.querySelector(".armory-timer-text");
+
+                            if (data && data.active) {
+                                item.classList.add("active-lever");
+                                const elapsedTotal = Math.floor((Date.now() - data.at) / 1000);
+                                const mins = Math.floor(elapsedTotal / 60);
+                                const secs = elapsedTotal % 60;
+                                const timeString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+                                const user = usersCache[data.by] || { name: "Unknown", color: "#fff" };
+                                timerText.innerHTML = `<span style="color:${user.color}">${user.name}</span> pulled ${timeString} ago`;
+                            } else {
+                                item.classList.remove("active-lever");
+                                timerText.innerText = "Ready";
+                            }
+                        });
+                    };
+                    updateTick();
+                    armoryInterval = setInterval(updateTick, 1000);
+                });
+
+                document.querySelectorAll(".armory-item").forEach(item => {
+                    item.onclick = () => {
+                        const id = item.getAttribute("data-id");
+                        const doorLabel = item.querySelector(".door-title").innerText;
+                        const currentlyActive = item.classList.contains("active-lever");
+                        
+                        db.ref(`rooms/${roomCode}/armory_status/${id}`).set({
+                            active: !currentlyActive,
+                            at: !currentlyActive ? Date.now() : null,
+                            by: !currentlyActive ? userUID : null
+                        });
+
+                        logHistory({
+                            type: "armory",
+                            by: userUID,
+                            text: `${!currentlyActive ? "pulled" : "reset"} the ${doorLabel} lever`
+                        });
+                    };
+                });
+            } else {
+                armoryCard.classList.add("hidden");
+            }
+
+            let previousUsers = {};
+            usersRef.on("value", snap => {
+                const users = snap.val() || {};
+                Object.keys(previousUsers).forEach(uid => {
+                    if (!users[uid]) {
+                        const nameLeft = previousUsers[uid].name || "Unknown";
+                        showNotification(`<b>${nameLeft}</b> left the room`);
+                    }
+                });
+                previousUsers = { ...users };
+                usersCache = users;
+                const list = Object.values(users).map(u => `<span style="color:${u.color}; font-weight:bold;">${u.name}</span>`).join(", ");
+                document.getElementById("users-list").innerHTML = "Users in room: " + (list || "None");
+            });
+
+            roomExpiresAt = room.expiresAt;
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const remaining = roomExpiresAt - Date.now();
+                if (remaining <= 0) { leaveRoom(); return; }
+                const tSec = Math.floor(remaining / 1000), h = Math.floor(tSec / 3600), m = Math.floor((tSec % 3600) / 60), s = tSec % 60;
+                document.getElementById("room-timer").innerText = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+            }, 1000);
+
+            roomRef.child("doors").on("value", snap => {
+                doorsState = snap.val() || {};
+                renderDoors();
+                renderDoorList();
+            });
+
+            roomRef.child("doors").on("child_changed", snap => {
+                const doorId = snap.key, data = snap.val();
+                if (data.opened) {
+                    const userObj = usersCache?.[data.by];
+                    const name = userObj?.name || "Unknown";
+                    const color = userObj?.color || "#fff";
+                    const door = activeDoorsList.find(d => d.id === doorId);
+                    if (door) {
+                        showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> opened ${door.label}`);
+                    }
+                }
+            });
+
+            roomRef.on("value", snap => {
+                if (!snap.exists() || snap.val()?.deleting) cleanupRoomState();
+            });
+
+            roomRef.child("lastAction").on("value", snap => {
+                const action = snap.val();
+                if (!action || action.type !== "reset") return;
+                const user = usersCache?.[action.by];
+                showNotification(`<span style="color:${user?.color || '#fff'}; font-weight:bold;">${user?.name || 'Someone'}</span> reset the doors`);
+            });
+
+            const historyRef = db.ref(`rooms/${code}/history`);
+            historyRef.limitToLast(15).on("value", snap => {
+                const list = document.getElementById("history-list");
+                list.innerHTML = "";
+                const entries = snap.val();
+                if (!entries) return;
+                Object.values(entries).forEach(e => {
+                    const user = usersCache?.[e.by];
+                    const li = document.createElement("li");
+                    li.innerHTML = `<span style="color:${user?.color || '#fff'}; font-weight:bold;">${user?.name || 'Unknown'}</span> ${e.text}`;
+                    list.appendChild(li);
+                });
+            });
         });
-    };
-    updateTick();
-    armoryInterval = setInterval(updateTick, 1000);
-});
-
-document.querySelectorAll(".armory-item").forEach(item => {
-    item.onclick = () => {
-        const id = item.getAttribute("data-id");
-        const doorLabel = item.querySelector(".door-title").innerText;
-        const currentlyActive = item.classList.contains("active-lever");
-        
-        db.ref(`rooms/${roomCode}/armory_status/${id}`).set({
-            active: !currentlyActive,
-            at: !currentlyActive ? Date.now() : null,
-            by: !currentlyActive ? userUID : null
-        });
-
-        logHistory({
-            type: "armory",
-            by: userUID,
-            text: `${!currentlyActive ? "pulled" : "reset"} the ${doorLabel} lever`
-        });
-    };
-});
-      } else {
-        armoryCard.classList.add("hidden");
-      }
-
-      let previousUsers = {};
-      usersRef.on("value", snap => {
-        const users = snap.val() || {};
-        Object.keys(previousUsers).forEach(uid => {
-          if (!users[uid]) {
-            const nameLeft = previousUsers[uid].name || "Unknown";
-            showNotification(`<b>${nameLeft}</b> left the room`);
-          }
-        });
-        previousUsers = { ...users };
-        usersCache = users;
-        const list = Object.values(users).map(u => `<span style="color:${u.color}; font-weight:bold;">${u.name}</span>`).join(", ");
-        document.getElementById("users-list").innerHTML = "Users in room: " + (list || "None");
-      });
-
-      roomExpiresAt = room.expiresAt;
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        const remaining = roomExpiresAt - Date.now();
-        if (remaining <= 0) { document.getElementById("room-timer").innerText = "Expired"; leaveRoom(); return; }
-        const tSec = Math.floor(remaining / 1000), h = Math.floor(tSec / 3600), m = Math.floor((tSec % 3600) / 60), s = tSec % 60;
-        document.getElementById("room-timer").innerText = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-      }, 1000);
-
-      roomRef.child("doors").once("value").then(snap => {
-        doorsState = snap.val() || {};
-        renderDoors();
-        renderDoorList();
-
-        roomRef.child("doors").on("child_changed", snap => {
-          const doorId = snap.key, data = snap.val();
-          doorsState[doorId] = data;
-          renderDoors();
-          renderDoorList();
-          if (data.opened) {
-            const userObj = usersCache?.[data.by];
-            const name = userObj?.name || "Unknown";
-            const color = userObj?.color || "#fff";
-            const door = activeDoorsList.find(d => d.id === doorId);
-            if (door) showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> pulled ${door.label} lever`);
-          }
-        });
-      });
-
-      roomRef.on("value", snap => {
-        const data = snap.val();
-        if (!snap.exists() || data?.deleting) {
-          cleanupRoomState();
-        }
-      });
-
-      roomRef.child("lastAction").on("value", snap => {
-        const action = snap.val();
-        if (!action || action.type !== "reset") return;
-        const user = usersCache?.[action.by];
-        const name = user?.name || "Someone";
-        const color = user?.color || "#fff";
-        showNotification(`<span style="color:${color}; font-weight:bold;">${name}</span> reset the doors`);
-      });
-
-      const historyRef = db.ref(`rooms/${code}/history`);
-      historyRef.limitToLast(15).on("value", snap => {
-        const list = document.getElementById("history-list");
-        list.innerHTML = "";
-        const entries = snap.val();
-        if (!entries) return;
-        Object.values(entries).forEach(e => {
-          const user = usersCache?.[e.by];
-          const name = user?.name || "Unknown";
-          const color = user?.color || "#fff";
-          const li = document.createElement("li");
-          li.innerHTML = `<span style="color:${color}; font-weight:bold;">${name}</span> ${e.text}`;
-          list.appendChild(li);
-        });
-      });
     });
-  });
 }
 
 function optimisticToggleUI(doorId, newState, isRollback = false) {
@@ -461,125 +451,119 @@ function optimisticToggleUI(doorId, newState, isRollback = false) {
 }
 
 function renderDoors() {
-  const container = document.querySelector(".map-container");
-  if (!container || !roomCode || !activeMapConfig) return;
+    const container = document.querySelector(".map-container");
+    if (!container || !roomCode || !activeMapConfig) return;
 
-  document.querySelectorAll(".door-icon").forEach(el => el.remove());
+    document.querySelectorAll(".door-icon").forEach(el => el.remove());
 
-  activeDoorsList.forEach(d => {
-    const btn = document.createElement("button");
-    btn.classList.add("door-icon");
-    const state = doorsState[d.id] || { opened: false };
-    if (state.opened) btn.classList.add("opened");
+    activeDoorsList.forEach(d => {
+        const btn = document.createElement("button");
+        btn.classList.add("door-icon");
+        btn.setAttribute("data-door-id", d.id);
 
-    btn.setAttribute("data-door-id", d.id);
-    btn.setAttribute("data-label", d.label);
-    btn.removeAttribute("title");
+        btn.setAttribute("data-label", d.label); 
 
-    btn.style.top = d.top;
-    btn.style.left = d.left;
-    btn.style.display = d.floor === currentFloor ? "block" : "none";
+        const state = doorsState[d.id] || { opened: false };
+        if (state.opened) btn.classList.add("opened");
 
-    btn.onclick = () => {
-      if (!roomCode) return;
-      const newOpened = !btn.classList.contains("opened");
-      optimisticToggleUI(d.id, newOpened);
-      db.ref(`rooms/${roomCode}/doors/${d.id}`).set({
-        opened: newOpened,
-        by: userUID,
-        at: Date.now()
-      })
-.then(() => {
-    const actionText = newOpened ? "pulled" : "reset";
-    logHistory({ type: "door", by: userUID, text: `${actionText} the ${d.label} lever` });
-})
-        .catch(e => {
-          console.error("Write failed:", e);
-          optimisticToggleUI(d.id, !newOpened, true);
-        });
-    };
-    container.appendChild(btn);
-  });
+        btn.style.top = d.top;
+        btn.style.left = d.left;
+        btn.style.display = d.floor === currentFloor ? "block" : "none";
+
+        btn.onmouseenter = (e) => {
+            const label = document.createElement("div");
+            label.className = "door-hover-label";
+            label.innerText = d.label;
+            btn.appendChild(label);
+        };
+
+        btn.onmouseleave = () => {
+            const label = btn.querySelector(".door-hover-label");
+            if (label) label.remove();
+        };
+
+        btn.onclick = () => {
+            if (!roomCode) return;
+            const newOpened = !btn.classList.contains("opened");
+
+            optimisticToggleUI(d.id, newOpened);
+            
+            db.ref(`rooms/${roomCode}/doors/${d.id}`).set({
+                opened: newOpened,
+                by: userUID,
+                at: Date.now()
+            })
+            .then(() => {
+                logHistory({ 
+                    type: "door", 
+                    by: userUID, 
+                    text: `${newOpened ? "opened" : "reset"} ${d.label}` 
+                });
+            })
+            .catch(e => {
+                optimisticToggleUI(d.id, !newOpened, true);
+            });
+        };
+        
+        container.appendChild(btn);
+    });
 }
 
 function renderDoorList() {
-  if (!roomCode || !activeMapConfig) return;
-  const list = document.getElementById("door-list");
-  const text = document.getElementById("door-progress-text");
-  const bar = document.getElementById("door-progress-bar");
-  list.innerHTML = "";
-  let openedCount = 0;
+    if (!roomCode || !activeMapConfig) return;
+    const list = document.getElementById("door-list");
+    const text = document.getElementById("door-progress-text");
+    const bar = document.getElementById("door-progress-bar");
+    if (!list || !text || !bar) return;
 
-  const sortedDoors = [...activeDoorsList].sort((a, b) => a.floor - b.floor);
+    list.innerHTML = "";
+    let openedCount = 0;
+    const sortedDoors = [...activeDoorsList].sort((a, b) => a.floor - b.floor);
 
-  sortedDoors.forEach(door => {
-    const state = doorsState[door.id];
-    if (!state) return;
+    sortedDoors.forEach(door => {
+        const state = doorsState[door.id];
+        if (!state) return;
+        if (state.opened) openedCount++;
 
-    if (state.opened) openedCount++;
+        const li = document.createElement("li");
+        li.classList.add(state.opened ? "door-opened" : "door-closed");
+        li.setAttribute("data-door-id", door.id);
 
-    const li = document.createElement("li");
-    li.classList.add(state.opened ? "door-opened" : "door-closed");
-    li.setAttribute("data-door-id", door.id);
+        const user = usersCache[state.by];
+        const openedAt = state.at ? new Date(state.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+        const floorObj = activeMapConfig.floors.find(f => f.id === door.floor);
+        const floorName = floorObj ? (floorObj.name === "Basement" ? "B1" : floorObj.name.replace(/[^0-9]/g, '') + "F") : "";
 
-    const user = usersCache[state.by];
-    const name = user?.name || "Unknown";
-    const color = user?.color || "#fff";
-    const openedAt = state.at ? new Date(state.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+        li.innerHTML = `
+            <div class="door-title">${door.label} (${floorName})</div>
+            ${state.opened ? `<div class="door-meta">opened by <span style="color:${user?.color || '#fff'}; font-weight:bold;">${user?.name || 'Unknown'}</span><span class="door-time">${openedAt}</span></div>` : ""}
+        `;
 
-    const floorObj = activeMapConfig.floors.find(f => f.id === door.floor);
-    const floorName = floorObj ? floorObj.name : "";
-
-    let displayFloor = "";
-    if (floorName === "Basement") {
-      displayFloor = " (B1)";
-    } else if (floorName === "Outer Wall") {
-      displayFloor = "";
-    } else if (floorName.includes("Floor")) {
-      const num = floorName.replace(/[^0-9]/g, '');
-      displayFloor = ` (${num}F)`;
-    } else {
-      displayFloor = floorName ? ` (${floorName})` : "";
-    }
-
-    li.innerHTML = `<div class="door-title">${door.label}${displayFloor}</div>
-            ${state.opened ? `<div class="door-meta">pulled by <span style="color:${color}; font-weight:bold;">${name}</span><span class="door-time">${openedAt}</span></div>` : ""}`;
-
-    li.onclick = () => {
-      const newState = !state.opened;
-      optimisticToggleUI(door.id, newState);
-      db.ref(`rooms/${roomCode}/doors/${door.id}`).set({
-        opened: newState,
-        by: userUID,
-        at: Date.now()
-      })
-.then(() => {
-    const actionText = newState ? "pulled" : "reset";
-    logHistory({ type: "door", by: userUID, text: `${actionText} the ${door.label} lever` });
-})
-        .catch(e => {
-          console.error("Write failed:", e);
-          optimisticToggleUI(door.id, !newState, true);
-        });
-    };
-    list.appendChild(li);
-  });
-
-  const total = activeDoorsList.length;
-  const percent = total ? Math.round((openedCount / total) * 100) : 0;
-  text.innerText = `${openedCount} / ${total} pulled`;
-  bar.style.width = percent + "%";
-
-  const armoryCard = document.getElementById('armory-status-card');
-  const doorCard = document.getElementById('door-card');
-
-  if (document.body.classList.contains('armory-active') && armoryCard && doorCard) {
-    requestAnimationFrame(() => {
-      const doorCardHeight = doorCard.offsetHeight;
-      const doorCardTop = 20;
-      armoryCard.style.top = (doorCardTop + doorCardHeight + 15) + "px";
+        li.onclick = () => {
+            const newState = !state.opened;
+            optimisticToggleUI(door.id, newState);
+            db.ref(`rooms/${roomCode}/doors/${door.id}`).set({
+                opened: newState,
+                by: userUID,
+                at: Date.now()
+            }).then(() => {
+                logHistory({ type: "door", by: userUID, text: `${newState ? "opened" : "reset"} ${door.label}` });
+            });
+        };
+        list.appendChild(li);
     });
-  }
+
+    const total = activeDoorsList.length;
+    text.innerText = `${openedCount} / ${total} opened`;
+    bar.style.width = (total ? (openedCount / total) * 100 : 0) + "%";
+
+    const armoryCard = document.getElementById('armory-status-card');
+    const doorCard = document.getElementById('door-card');
+    if (activeMapConfig.name === "Armory" && armoryCard && doorCard) {
+        requestAnimationFrame(() => {
+            armoryCard.style.top = (20 + doorCard.offsetHeight + 15) + "px";
+        });
+    }
 }
 
 function switchFloor(floorId){
@@ -591,33 +575,20 @@ function switchFloor(floorId){
       document.getElementById("map-image").src = floorConfig.img;
   }
 
-  document.querySelectorAll(".floor-btn").forEach(btn => btn.classList.remove("active"));
-  const activeBtn = document.querySelector(`.floor-btn[data-floor-id='${floorId}']`);
-  if (activeBtn) activeBtn.classList.add("active");
+  document.querySelectorAll(".floor-btn").forEach(btn => {
+      btn.classList.remove("active");
+      if (parseInt(btn.getAttribute("data-floor-id")) === floorId) {
+          btn.classList.add("active");
+      }
+  });
 
-  document.querySelectorAll(".door-icon").forEach(btn=>{
+  document.querySelectorAll(".door-icon").forEach(btn => {
     const doorId = btn.getAttribute("data-door-id");
     const door = activeDoorsList.find(d => d.id === doorId); 
-    btn.style.display = door && door.floor===floorId?"block":"none";
+    if (door) {
+        btn.style.display = door.floor === floorId ? "block" : "none";
+    }
   });
-}
-
-document.getElementById("reset-levers-btn").addEventListener("click", resetLevers);
-
-document.getElementById("reset-btn").addEventListener("click", resetDoors);
-document.getElementById("delete-btn").addEventListener("click", deleteRoom);
-document.getElementById("leave-btn").addEventListener("click", leaveRoom);
-
-function resetDoors(){
-  if(!roomCode || !activeDoorsList) return;
-  const resetState={}; 
-  activeDoorsList.forEach(d => resetState[d.id] = { opened: false, by: userUID, at: Date.now() });
-  
-  db.ref(`rooms/${roomCode}`).update({ 
-      doors: resetState, 
-      lastAction: { type: "reset", by: userUID, at: Date.now() } 
-  });
-  logHistory({ type: "reset", by: userUID, text: "reset all doors" });
 }
 
 function deleteRoom(){
