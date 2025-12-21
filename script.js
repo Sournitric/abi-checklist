@@ -34,14 +34,13 @@ const MAP_LIBRARY = {
     ],
     doors: [
        { id: "sluice_2", label: "Sluice No.2", floor: 1, top: "32%", left: "45%" },
-       { id: "weapon_storage", label: "Weapon Storage", floor: 2, top:"69%", left:"49%"},
-       { id: "2f_lounge", label: "Second Floor Lounge", floor: 2, top:"54%", left:"66%"},
-       { id: "private_lounge", label: "Private Lounge", floor: 3, top:"61.5%", left: "75%" },
+       { id: "weapon_storage", label: "Weapon Storage", floor: 2, top:"69.5532%", left:"50.2742%"},
+       { id: "2f_lounge", label: "Second Floor Lounge", floor: 2, top: "56.8914%", left: "65.4479%"},
+       { id: "private_lounge", label: "Private Lounge", floor: 3, top:"64.5%", left: "75%" },
        { id: "command_room", label: "Command Room", floor: 4, top:"53.8%", left:"40.9%"}
     ]
   }
 };
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyBjCQ0bC17KHnG9ylIszBtaAnnDPLYqBV0",
@@ -776,4 +775,3 @@ function openModal(id) {
 function closeModal(id) {
   document.getElementById(id)?.classList.add("hidden");
 }
-
