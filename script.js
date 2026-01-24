@@ -120,7 +120,8 @@ function setLobbyLocked(locked){
 
 function copyRoomCode() {
   if (!roomCode) return;
-  navigator.clipboard.writeText(roomCode).then(() => {
+  const link = "https://abi-checklist.vercel.app?code=" + roomCode;
+  navigator.clipboard.writeText(link).then(() => {
     const btn = document.getElementById("copy-room-btn");
     const popup = document.createElement("span");
     popup.className = "copy-popup";
@@ -774,4 +775,32 @@ function openModal(id) {
 
 function closeModal(id) {
   document.getElementById(id)?.classList.add("hidden");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const urlCode = params.get("code")?.trim().toUpperCase();
+    if (urlCode) {
+        const joinInput = document.getElementById("joinCode");
+        const modalInput = document.getElementById("modalJoinCode");
+
+        if (joinInput) {
+            joinInput.value = urlCode;
+            highlightInput(joinInput);
+        }
+        if (modalInput) {
+            modalInput.value = urlCode;
+            highlightInput(modalInput);
+        }
+    }
+});
+
+function highlightInput(inputEl) {
+    const originalBg = inputEl.style.backgroundColor;
+    inputEl.style.backgroundColor = "#fffa8c";
+    inputEl.style.transition = "background-color 0.8s ease";
+
+    setTimeout(() => {
+        inputEl.style.backgroundColor = originalBg || "";
+    }, 1500); // reverts to normal after 1.5 seconds
 }
