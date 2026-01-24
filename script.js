@@ -434,6 +434,7 @@ function joinRoom(code) {
             });
         });
     });
+    document.body.style.overflowY = 'auto';
 }
 
 function optimisticToggleUI(doorId, newState, isRollback = false) {
@@ -612,9 +613,10 @@ function leaveRoom(){
   const userRef = db.ref(`rooms/${roomCode}/users/${userUID}`);
   userRef.onDisconnect().cancel(); 
   userRef.remove();
-  
+  document.body.style.overflowY = 'hidden';
   cleanupRoomState();
   showNotification(`You left the room.`);
+  
 }
 function cleanupRoomState(){
   if(timerInterval) clearInterval(timerInterval);
